@@ -1,5 +1,5 @@
 const express = require('express');
-const path = require('path');
+const path = path = require('path');
 const cors = require('cors');
 
 const app = express();
@@ -13,13 +13,18 @@ app.use(express.json());
 app.use(express.static(path.join(__dirname, '../public')));
 
 // مسارات API للحملات الإعلانية
-app.use('/api/campaigns', require('../routes/campaigns'));
+app.use('/api/campaigns', require('./routes/campaigns'));
 
 // المسار الرئيسي لتشغيل الواجهة
 app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../public', 'index.html'));
 });
 
-app.listen(PORT, '0.0.0.0', () => {
-  console.log(`Server is running on port ${PORT}`);
-});
+// تصدير التطبيق لتشغيله كـ Serverless Function على Vercel
+module.exports = app;
+
+if (require.main === module) {
+  app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Server is running on port ${PORT}`);
+  });
+}
