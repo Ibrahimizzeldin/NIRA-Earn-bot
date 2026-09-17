@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>NIRA Earn Bot - الإعلانات والمهام</title>
   <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <!-- Adsgram SDK -->
+  <script src="https://sad.adsgram.ai/js/sad-index.js"></script>
   <style>
     :root {
       --bg-color: #0f172a;
@@ -14,6 +16,7 @@
       --text-muted: #94a3b8;
       --success-color: #22c55e;
       --border-color: #334155;
+      --adsgram-color: #8b5cf6;
     }
 
     body {
@@ -30,7 +33,6 @@
       margin: 0 auto;
     }
 
-    /* Tabs Bar */
     .tabs {
       display: flex;
       gap: 8px;
@@ -66,13 +68,17 @@
       display: block;
     }
 
-    /* Cards */
     .card {
       background: var(--card-bg);
       border-radius: 14px;
       padding: 16px;
       margin-bottom: 12px;
       border: 1px solid var(--border-color);
+    }
+
+    .adsgram-card {
+      border: 1px solid var(--adsgram-color);
+      background: linear-gradient(135deg, #1e293b 0%, #2e1065 100%);
     }
 
     .card-title {
@@ -113,12 +119,10 @@
       cursor: pointer;
     }
 
-    .btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
+    .btn-adsgram {
+      background: var(--adsgram-color);
     }
 
-    /* Form Inputs */
     .form-group {
       margin-bottom: 14px;
     }
@@ -139,29 +143,34 @@
       color: var(--text-color);
       box-sizing: border-box;
     }
-
-    .form-control:focus {
-      outline: none;
-      border-color: var(--accent-color);
-    }
   </style>
 </head>
 <body>
   <div class="container">
-    <!-- Navigation Tabs -->
     <div class="tabs">
       <button class="tab-btn active" onclick="switchTab('tasks')">🎯 المهام المتاحة</button>
       <button class="tab-btn" onclick="switchTab('create')">➕ إنشاء حملة</button>
     </div>
 
-    <!-- Section 1: Available Tasks/Campaigns -->
+    <!-- قسم المهام -->
     <div id="tab-tasks" class="tab-content active">
+      <!-- كرت إعلانات الفيديو Adsgram -->
+      <div class="card adsgram-card">
+        <div class="card-title">🎬 شاهد فيديو واكسب GRAM</div>
+        <div class="card-desc">شاهد فيديو إعلاني قصير لمدة 15 ثانية وراكم أرباحك فوراً.</div>
+        <div class="card-footer">
+          <span class="reward-badge">+0.001 GRAM</span>
+          <button class="btn btn-adsgram" onclick="showAdsgramVideo()">مشاهدة الآن</button>
+        </div>
+      </div>
+
+      <!-- قائمة الحملات الداخلية -->
       <div id="campaigns-list">
         <p style="text-align: center; color: var(--text-muted);">جاري تحميل الحملات...</p>
       </div>
     </div>
 
-    <!-- Section 2: Create Campaign -->
+    <!-- قسم إنشاء حملة -->
     <div id="tab-create" class="tab-content">
       <div class="card">
         <div class="card-title">إنشاء حملة إعلانية جديدة</div>
@@ -175,7 +184,16 @@
 
           <div class="form-group">
             <label>رابط الهدف (URL)</label>
-            <input type="url" id="link" class="form-control" placeholder="https://t.me/your_channel" required>
+            <input type="url" id="targetUrl" class="form-control" placeholder="https://t.me/your_channel" required>
+          </div>
+
+          <div class="form-group">
+            <label>نوع الحملة</label>
+            <select id="campaignType" class="form-control">
+              <option value="direct">زيارة مباشرة ($0.0025)</option>
+              <option value="with_verification">اشتراك مع تحقق آلي ($0.0030)</option>
+              <option value="banner">بنر مميز ($0.0050)</option>
+            </select>
           </div>
 
           <div class="form-group">
@@ -187,16 +205,11 @@
           </div>
 
           <div class="form-group">
-            <label>الميزانية الإجمالية للحملة</label>
-            <input type="number" step="0.001" id="totalBudget" class="form-control" placeholder="100" required>
+            <label>عدد النقرات المطلوبة</label>
+            <input type="number" id="clicks" class="form-control" placeholder="100" required>
           </div>
 
-          <div class="form-group">
-            <label>المكافأة لكل مشاهدة / نقرة</label>
-            <input type="number" step="0.001" id="rewardPerView" class="form-control" placeholder="1" required>
-          </div>
-
-          <button type="submit" class="btn" style="width: 100%;">إطلاق الحملة الأن</button>
+          <button type="submit" class="btn" style="width: 100%;">إطلاق الحملة الآن</button>
         </form>
       </div>
     </div>
@@ -205,6 +218,9 @@
   <script>
     const tg = window.Telegram?.WebApp;
     if (tg) tg.expand();
+
+    // تهيئة Adsgram (استبدل YOUR_BLOCK_ID بمعرف الكتلة الخاص بك من لوحة Adsgram)
+    const AdController = window.Adsgram ? window.Adsgram.init({ blockId: "YOUR_BLOCK_ID" }) : null;
 
     function switchTab(tabName) {
       document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
@@ -222,58 +238,78 @@
 
     async function loadCampaigns() {
       const container = document.getElementById('campaigns-list');
+      const userId = tg?.initDataUnsafe?.user?.id || 'demo_user';
       try {
-        const res = await fetch('/api/campaigns');
-        const campaigns = await res.json();
+        const res = await fetch(`/api/campaigns/available/${userId}`);
+        const data = await res.json();
 
-        if (!campaigns || campaigns.length === 0) {
-          container.innerHTML = '<div class="card"><p style="text-align:center;">لا توجد حملات إعلانية متاحة حالياً.</p></div>';
+        if (!data.campaigns || data.campaigns.length === 0) {
+          container.innerHTML = '<div class="card"><p style="text-align:center;">لا توجد حملات متاحة حالياً.</p></div>';
           return;
         }
 
-        container.innerHTML = campaigns.map(c => `
+        container.innerHTML = data.campaigns.map(c => `
           <div class="card">
             <div class="card-title">${c.title}</div>
-            <div class="card-desc">قم بزيارة الرابط وأكمل المهمة للحصول على المكافأة.</div>
+            <div class="card-desc">${c.description || 'أكمل المهمة للحصول على المكافأة.'}</div>
             <div class="card-footer">
-              <span class="reward-badge">+${c.reward_per_view} ${c.currency}</span>
-              <button class="btn" onclick="completeTask('${c.id}', '${c.link}')">تنفيذ المهمة</button>
+              <span class="reward-badge">+${(c.cost_per_click * 0.6).toFixed(4)} ${c.currency}</span>
+              <button class="btn" onclick="verifyTask('${c.id}', '${c.target_url}')">تنفيذ المهمة</button>
             </div>
           </div>
         `).join('');
       } catch (err) {
-        container.innerHTML = '<div class="card"><p style="text-align:center; color:red;">حدث خطأ أثناء تحميل البيانات.</p></div>';
+        container.innerHTML = '<div class="card"><p style="text-align:center; color:red;">خطأ في تحميل الحملات.</p></div>';
       }
     }
 
-    async function completeTask(campaignId, link) {
-      if (tg) tg.openLink(link);
-      else window.open(link, '_blank');
+    async function verifyTask(campaignId, targetUrl) {
+      if (tg) tg.openTelegramLink ? tg.openTelegramLink(targetUrl) : tg.openLink(targetUrl);
+      else window.open(targetUrl, '_blank');
+
+      const userId = tg?.initDataUnsafe?.user?.id || 'demo_user';
 
       try {
-        await fetch('/api/campaigns/claim', {
+        const res = await fetch('/api/campaigns/verify', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            userId: tg?.initDataUnsafe?.user?.id || 'demo_user',
-            campaignId: campaignId
-          })
+          body: JSON.stringify({ telegramId: userId, campaignId })
         });
-        alert('تم تسجيل زيارتك، وسيتم إضافة المكافأة لحسابك!');
+        const data = await res.json();
+
+        if (res.ok) {
+          alert(`تمت المهمة بنجاح! تم إضافة ${data.reward} ${data.currency} لرصيدك.`);
+          loadCampaigns();
+        } else {
+          alert(data.error || 'فشل التحقق من المهمة');
+        }
       } catch (e) {
-        console.error(e);
+        alert('حدث خطأ في الاتصال بالخادم');
       }
+    }
+
+    function showAdsgramVideo() {
+      if (!AdController) {
+        alert('إعلانات الفيديو غير متاحة حالياً.');
+        return;
+      }
+      AdController.show().then((result) => {
+        // إضافة المكافأة بعد المشاهدة الكاملة
+        alert('شكرًا لمشاهدتك! تم إيداع المكافأة في رصيدك.');
+      }).catch((result) => {
+        alert('لم تكتمل مشاهدة الإعلان.');
+      });
     }
 
     async function handleCreateCampaign(e) {
       e.preventDefault();
       const payload = {
-        userId: tg?.initDataUnsafe?.user?.id || 'demo_user',
+        telegramId: tg?.initDataUnsafe?.user?.id || 'demo_user',
         title: document.getElementById('title').value,
-        link: document.getElementById('link').value,
+        targetUrl: document.getElementById('targetUrl').value,
+        campaignType: document.getElementById('campaignType').value,
         currency: document.getElementById('currency').value,
-        totalBudget: parseFloat(document.getElementById('totalBudget').value),
-        rewardPerView: parseFloat(document.getElementById('rewardPerView').value)
+        clicks: parseInt(document.getElementById('clicks').value)
       };
 
       try {
@@ -285,20 +321,18 @@
         const data = await res.json();
 
         if (res.ok) {
-          alert('تم إنشاء الحملة بنجاح!');
+          alert('تم إطلاق الحملة بنجاح!');
           document.getElementById('create-campaign-form').reset();
           switchTab('tasks');
         } else {
-          alert('خطأ: ' + (data.error || 'تعذر إنشاء الحملة'));
+          alert('خطأ: ' + (data.error || 'فشل إنشاء الحملة'));
         }
       } catch (err) {
-        alert('حدث خطأ في الاتصال بالسيرفر.');
+        alert('حدث خطأ أثناء الاتصال بالخادم.');
       }
     }
 
-    // التحميل الأولي
     loadCampaigns();
   </script>
 </body>
-    </html>
-    
+</html>
