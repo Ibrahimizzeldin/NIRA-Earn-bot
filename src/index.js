@@ -1,28 +1,25 @@
-const http = require('http');
-const fs = require('fs');
+const express = require('express');
 const path = require('path');
+const cors = require('cors');
 
+const app = express();
 const PORT = process.env.PORT || 3000;
 
-const server = http.createServer((req, res) => {
-    let filePath = path.join(__dirname, '..', 'public', req.url === '/' ? 'index.html' : req.url);
-    
-    fs.readFile(filePath, (err, content) => {
-        if (err) {
-            res.writeHead(404, { 'Content-Type': 'text/plain; charset=utf-8' });
-            res.end('404 Not Found');
-        } else {
-            let contentType = 'text/html; charset=utf-8';
-            if (filePath.endsWith('.css')) contentType = 'text/css';
-            if (filePath.endsWith('.js')) contentType = 'text/javascript';
-            if (filePath.endsWith('.json')) contentType = 'application/json';
-            
-            res.writeHead(200, { 'Content-Type': contentType });
-            res.end(content);
-        }
-    });
+// Middleware
+app.use(cors());
+app.use(express.json());
+
+// تقديم الملفات الثابتة من مجلد public
+app.use(express.static(path.join(__dirname, '../public')));
+
+// مسارات API للحملات الإعلانية
+app.use('/api/campaigns', require('../routes/campaigns'));
+
+// المسار الرئيسي لتشغيل الواجهة
+app.get('*', (req, res) => {
+  res.sendFile(path.join(__dirname, '../public', 'index.html'));
 });
 
-server.listen(PORT, '0.0.0.0', () => {
-    console.log(`Server is running on port ${PORT}`);
+app.listen(PORT, '0.0.0.0', () => {
+  console.log(`Server is running on port ${PORT}`);
 });
