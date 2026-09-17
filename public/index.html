@@ -1,374 +1,304 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>NIRA Earn</title>
-    <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <style>
-        :root {
-            --bg-color: #0f172a;
-            --card-bg: #1e293b;
-            --accent-color: #f59e0b;
-            --accent-green: #10b981;
-            --text-main: #ffffff;
-            --text-sub: #94a3b8;
-        }
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>NIRA Earn Bot - الإعلانات والمهام</title>
+  <script src="https://telegram.org/js/telegram-web-app.js"></script>
+  <style>
+    :root {
+      --bg-color: #0f172a;
+      --card-bg: #1e293b;
+      --accent-color: #3b82f6;
+      --text-color: #f8fafc;
+      --text-muted: #94a3b8;
+      --success-color: #22c55e;
+      --border-color: #334155;
+    }
 
-        * {
-            box-sizing: border-box;
-            -webkit-tap-highlight-color: transparent;
-            user-select: none;
-            -webkit-user-select: none;
-        }
+    body {
+      margin: 0;
+      padding: 16px;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+      background-color: var(--bg-color);
+      color: var(--text-color);
+      direction: rtl;
+    }
 
-        body {
-            background-color: var(--bg-color);
-            color: var(--text-main);
-            font-family: system-ui, -apple-system, sans-serif;
-            margin: 0;
-            padding: 0;
-            height: 100vh;
-            display: flex;
-            flex-direction: column;
-            justify-content: space-between;
-            overflow: hidden;
-        }
+    .container {
+      max-width: 480px;
+      margin: 0 auto;
+    }
 
-        .header {
-            padding: 12px 20px;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: var(--card-bg);
-            border-bottom-left-radius: 16px;
-            border-bottom-right-radius: 16px;
-        }
+    /* Tabs Bar */
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 20px;
+      background: var(--card-bg);
+      padding: 6px;
+      border-radius: 12px;
+      border: 1px solid var(--border-color);
+    }
 
-        .user-info { display: flex; align-items: center; gap: 10px; }
-        .avatar { width: 40px; height: 40px; border-radius: 50%; background: var(--accent-color); display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 18px; color: #000; }
-        .user-details .name { font-weight: bold; font-size: 15px; }
-        .user-details .rank { font-size: 12px; color: var(--accent-color); }
+    .tab-btn {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      background: transparent;
+      color: var(--text-muted);
+      font-weight: bold;
+      border-radius: 8px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
 
-        .tab-content { display: none; flex: 1; flex-direction: column; align-items: center; padding: 15px; overflow-y: auto; text-align: center; }
-        .tab-content.active { display: flex; }
+    .tab-btn.active {
+      background: var(--accent-color);
+      color: #fff;
+    }
 
-        .balance-container { margin-bottom: 10px; }
-        .balance-title { font-size: 13px; color: var(--text-sub); }
-        .balance-amount { font-size: 38px; font-weight: 800; color: var(--accent-color); display: flex; align-items: center; justify-content: center; gap: 8px; }
+    .tab-content {
+      display: none;
+    }
 
-        .tap-area { position: relative; margin: 15px 0; touch-action: manipulation; }
-        .tap-button { width: 190px; height: 190px; border-radius: 50%; background: radial-gradient(circle, #fbbf24 0%, #d97706 100%); border: 6px solid #fef3c7; box-shadow: 0 0 30px rgba(245, 158, 11, 0.4); display: flex; align-items: center; justify-content: center; font-size: 75px; cursor: pointer; transition: transform 0.05s ease; user-select: none; -webkit-user-select: none; }
-        .tap-button:active { transform: scale(0.93); }
+    .tab-content.active {
+      display: block;
+    }
 
-        .floating-num { position: absolute; font-size: 26px; font-weight: bold; color: #ffffff; pointer-events: none; animation: floatUp 0.8s ease-out forwards; }
-        @keyframes floatUp { 0% { opacity: 1; transform: translateY(0); } 100% { opacity: 0; transform: translateY(-60px); } }
+    /* Cards */
+    .card {
+      background: var(--card-bg);
+      border-radius: 14px;
+      padding: 16px;
+      margin-bottom: 12px;
+      border: 1px solid var(--border-color);
+    }
 
-        .energy-container { width: 90%; max-width: 320px; margin-top: 10px; }
-        .energy-info { display: flex; justify-content: space-between; font-size: 13px; color: var(--text-sub); margin-bottom: 5px; }
-        .energy-bar-bg { width: 100%; height: 10px; background-color: var(--card-bg); border-radius: 10px; overflow: hidden; }
-        .energy-bar-fill { width: 100%; height: 10px; background: linear-gradient(90deg, #3b82f6, #60a5fa); border-radius: 10px; transition: width 0.2s ease; }
+    .card-title {
+      font-size: 16px;
+      font-weight: bold;
+      margin-bottom: 6px;
+    }
 
-        .card-list { width: 100%; max-width: 360px; display: flex; flex-direction: column; gap: 10px; margin-top: 10px; }
-        .card-item { background: var(--card-bg); border-radius: 14px; padding: 12px 15px; display: flex; align-items: center; justify-content: space-between; text-align: right; }
-        .card-info { display: flex; align-items: center; gap: 12px; }
-        .card-icon { font-size: 28px; }
-        .card-title { font-weight: bold; font-size: 14px; }
-        .card-sub { font-size: 12px; color: var(--text-sub); margin-top: 2px; }
-        .btn-action { background: var(--accent-color); color: #000; border: none; padding: 8px 14px; border-radius: 10px; font-weight: bold; font-size: 12px; cursor: pointer; }
-        .btn-action:disabled { background: #475569; color: #94a3b8; cursor: not-allowed; }
+    .card-desc {
+      font-size: 13px;
+      color: var(--text-muted);
+      margin-bottom: 12px;
+    }
 
-        .navbar { display: flex; justify-content: space-around; background-color: var(--card-bg); padding: 10px 0; border-top: 1px solid #334155; }
-        .nav-item { display: flex; flex-direction: column; align-items: center; color: var(--text-sub); font-size: 11px; cursor: pointer; width: 20%; }
-        .nav-item .icon { font-size: 20px; margin-bottom: 2px; }
-        .nav-item.active { color: var(--accent-color); font-weight: bold; }
-    </style>
+    .card-footer {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-top: 10px;
+    }
+
+    .reward-badge {
+      background: rgba(34, 197, 94, 0.15);
+      color: var(--success-color);
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 13px;
+      font-weight: bold;
+    }
+
+    .btn {
+      background: var(--accent-color);
+      color: #fff;
+      border: none;
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+
+    .btn:disabled {
+      opacity: 0.5;
+      cursor: not-allowed;
+    }
+
+    /* Form Inputs */
+    .form-group {
+      margin-bottom: 14px;
+    }
+
+    .form-group label {
+      display: block;
+      font-size: 13px;
+      margin-bottom: 6px;
+      color: var(--text-muted);
+    }
+
+    .form-control {
+      width: 100%;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid var(--border-color);
+      background: #0f172a;
+      color: var(--text-color);
+      box-sizing: border-box;
+    }
+
+    .form-control:focus {
+      outline: none;
+      border-color: var(--accent-color);
+    }
+  </style>
 </head>
 <body>
-    <div class="header">
-        <div class="user-info">
-            <div class="avatar" id="userAvatar">N</div>
-            <div class="user-details">
-                <div class="name" id="userName">المستخدم</div>
-                <div class="rank">مبتدئ ⚡</div>
-            </div>
-        </div>
+  <div class="container">
+    <!-- Navigation Tabs -->
+    <div class="tabs">
+      <button class="tab-btn active" onclick="switchTab('tasks')">🎯 المهام المتاحة</button>
+      <button class="tab-btn" onclick="switchTab('create')">➕ إنشاء حملة</button>
     </div>
 
-    <!-- 1. الرئيسية -->
-    <div id="tab-earn" class="tab-content active">
-        <div class="balance-container">
-            <div class="balance-title">رصيدك الحالي</div>
-            <div class="balance-amount"><span id="score">0</span> 🪙</div>
-        </div>
-        <div class="tap-area">
-            <div class="tap-button" id="tapBtn">⚡</div>
-        </div>
-        <div class="energy-container">
-            <div class="energy-info">
-                <span>الطاقة ⚡</span>
-                <span><span id="energy">1000</span> / <span id="maxEnergy">1000</span></span>
-            </div>
-            <div class="energy-bar-bg">
-                <div class="energy-bar-fill" id="energyFill"></div>
-            </div>
-        </div>
+    <!-- Section 1: Available Tasks/Campaigns -->
+    <div id="tab-tasks" class="tab-content active">
+      <div id="campaigns-list">
+        <p style="text-align: center; color: var(--text-muted);">جاري تحميل الحملات...</p>
+      </div>
     </div>
 
-    <!-- 2. التعزيزات -->
-    <div id="tab-boost" class="tab-content">
-        <h2>🚀 التعزيزات</h2>
-        <div class="card-list">
-            <div class="card-item">
-                <div class="card-info">
-                    <span class="card-icon">👆</span>
-                    <div>
-                        <div class="card-title">زيادة قوة الضغطة</div>
-                        <div class="card-sub">+1 لكل ضغطة | السعر: <span id="multitapCost">100</span> 🪙</div>
-                    </div>
-                </div>
-                <button class="btn-action" id="btnMultitap">ترقية</button>
-            </div>
+    <!-- Section 2: Create Campaign -->
+    <div id="tab-create" class="tab-content">
+      <div class="card">
+        <div class="card-title">إنشاء حملة إعلانية جديدة</div>
+        <div class="card-desc">ترويج لقناتك أو رابطك واجلب الزوار مقابل مكافآت بالـ GRAM أو USDT</div>
+        
+        <form id="create-campaign-form" onsubmit="handleCreateCampaign(event)">
+          <div class="form-group">
+            <label>عنوان الحملة / المهمة</label>
+            <input type="text" id="title" class="form-control" placeholder="مثال: انضم لقناتنا على التليجرام" required>
+          </div>
 
-            <div class="card-item">
-                <div class="card-info">
-                    <span class="card-icon">🔋</span>
-                    <div>
-                        <div class="card-title">توسيع شريط الطاقة</div>
-                        <div class="card-sub">+500 طاقة | السعر: <span id="energyCost">200</span> 🪙</div>
-                    </div>
-                </div>
-                <button class="btn-action" id="btnEnergyLimit">ترقية</button>
-            </div>
+          <div class="form-group">
+            <label>رابط الهدف (URL)</label>
+            <input type="url" id="link" class="form-control" placeholder="https://t.me/your_channel" required>
+          </div>
 
-            <div class="card-item">
-                <div class="card-info">
-                    <span class="card-icon">⚡</span>
-                    <div>
-                        <div class="card-title">إعادة تعبئة الطاقة</div>
-                        <div class="card-sub">شحن كامل مجاني</div>
-                    </div>
-                </div>
-                <button class="btn-action" id="btnRefill">شحن الآن</button>
-            </div>
-        </div>
+          <div class="form-group">
+            <label>عملة الدفع</label>
+            <select id="currency" class="form-control">
+              <option value="GRAM">GRAM</option>
+              <option value="USDT">USDT</option>
+            </select>
+          </div>
+
+          <div class="form-group">
+            <label>الميزانية الإجمالية للحملة</label>
+            <input type="number" step="0.001" id="totalBudget" class="form-control" placeholder="100" required>
+          </div>
+
+          <div class="form-group">
+            <label>المكافأة لكل مشاهدة / نقرة</label>
+            <input type="number" step="0.001" id="rewardPerView" class="form-control" placeholder="1" required>
+          </div>
+
+          <button type="submit" class="btn" style="width: 100%;">إطلاق الحملة الأن</button>
+        </form>
+      </div>
     </div>
+  </div>
 
-    <!-- 3. المهام -->
-    <div id="tab-tasks" class="tab-content">
-        <h2>📋 المهام اليومية</h2>
-        <div class="card-list">
-            <div class="card-item">
-                <div class="card-info">
-                    <span class="card-icon">📢</span>
-                    <div>
-                        <div class="card-title">الانضمام لقناتنا</div>
-                        <div class="card-sub">+1,000 🪙 مكافأة</div>
-                    </div>
-                </div>
-                <button class="btn-action" id="task1Btn">انجاز</button>
+  <script>
+    const tg = window.Telegram?.WebApp;
+    if (tg) tg.expand();
+
+    function switchTab(tabName) {
+      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
+      document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
+
+      if (tabName === 'tasks') {
+        document.querySelectorAll('.tab-btn')[0].classList.add('active');
+        document.getElementById('tab-tasks').classList.add('active');
+        loadCampaigns();
+      } else {
+        document.querySelectorAll('.tab-btn')[1].classList.add('active');
+        document.getElementById('tab-create').classList.add('active');
+      }
+    }
+
+    async function loadCampaigns() {
+      const container = document.getElementById('campaigns-list');
+      try {
+        const res = await fetch('/api/campaigns');
+        const campaigns = await res.json();
+
+        if (!campaigns || campaigns.length === 0) {
+          container.innerHTML = '<div class="card"><p style="text-align:center;">لا توجد حملات إعلانية متاحة حالياً.</p></div>';
+          return;
+        }
+
+        container.innerHTML = campaigns.map(c => `
+          <div class="card">
+            <div class="card-title">${c.title}</div>
+            <div class="card-desc">قم بزيارة الرابط وأكمل المهمة للحصول على المكافأة.</div>
+            <div class="card-footer">
+              <span class="reward-badge">+${c.reward_per_view} ${c.currency}</span>
+              <button class="btn" onclick="completeTask('${c.id}', '${c.link}')">تنفيذ المهمة</button>
             </div>
+          </div>
+        `).join('');
+      } catch (err) {
+        container.innerHTML = '<div class="card"><p style="text-align:center; color:red;">حدث خطأ أثناء تحميل البيانات.</p></div>';
+      }
+    }
 
-            <div class="card-item">
-                <div class="card-info">
-                    <span class="card-icon">🎁</span>
-                    <div>
-                        <div class="card-title">المكافأة اليومية</div>
-                        <div class="card-sub">+500 🪙 يومياً</div>
-                    </div>
-                </div>
-                <button class="btn-action" id="dailyBtn">استلام</button>
-            </div>
-        </div>
-    </div>
+    async function completeTask(campaignId, link) {
+      if (tg) tg.openLink(link);
+      else window.open(link, '_blank');
 
-    <!-- 4. الأصدقاء -->
-    <div id="tab-friends" class="tab-content">
-        <h2>👥 دعوة الأصدقاء</h2>
-        <p style="color: var(--text-sub); font-size: 13px;">احصل على <b>+2,000 🪙</b> لك ولصديقك عند الانضمام!</p>
-
-        <div style="background: var(--card-bg); padding: 15px; border-radius: 14px; width: 100%; max-width: 360px; margin-top: 10px;">
-            <div style="font-size: 12px; color: var(--text-sub); margin-bottom: 8px;">رابط الدعوة الخاص بك:</div>
-            <input type="text" id="refLink" value="https://t.me/NiraEarnBot?start=ref_12345" readonly style="width: 100%; padding: 10px; background: #0f172a; border: 1px solid #334155; color: #fff; border-radius: 8px; text-align: center; margin-bottom: 10px; font-size: 12px;">
-            <button class="btn-action" id="btnCopyRef" style="width: 100%; padding: 10px;">نسخ الرابط 📋</button>
-        </div>
-    </div>
-
-    <!-- 5. المحفظة -->
-    <div id="tab-wallet" class="tab-content">
-        <h2>👛 محفظة TON</h2>
-        <p style="color: var(--text-sub); font-size: 13px; margin-bottom: 20px;">قم بربط محفظتك لتكون جاهزاً لاستلام الإنزال الجوي (AirDrop).</p>
-
-        <div style="background: var(--card-bg); padding: 25px; border-radius: 16px; width: 100%; max-width: 360px; text-align: center;">
-            <div style="font-size: 45px; margin-bottom: 10px;">💎</div>
-            <div style="font-size: 16px; font-weight: bold; margin-bottom: 15px;" id="walletStatus">لم يتم ربط المحفظة</div>
-            <button class="btn-action" style="width: 100%; padding: 12px; font-size: 14px;" id="connectWalletBtn">ربط Tonkeeper / TON 💎</button>
-        </div>
-    </div>
-
-    <!-- Navigation Bar -->
-    <div class="navbar">
-        <div class="nav-item active" data-tab="earn"><span class="icon">🏠</span><span>الرئيسية</span></div>
-        <div class="nav-item" data-tab="boost"><span class="icon">🚀</span><span>تعزيز</span></div>
-        <div class="nav-item" data-tab="tasks"><span class="icon">📋</span><span>المهام</span></div>
-        <div class="nav-item" data-tab="friends"><span class="icon">👥</span><span>الأصدقاء</span></div>
-        <div class="nav-item" data-tab="wallet"><span class="icon">👛</span><span>المحفظة</span></div>
-    </div>
-
-    <script>
-        document.addEventListener('DOMContentLoaded', () => {
-            const tg = window.Telegram?.WebApp;
-            if (tg) {
-                try { tg.expand(); } catch (e) {}
-            }
-
-            let score = 0, energy = 1000, maxEnergy = 1000, tapValue = 1;
-            let multitapCost = 100, energyCost = 200;
-            let walletConnected = false;
-
-            const scoreEl = document.getElementById('score');
-            const energyEl = document.getElementById('energy');
-            const maxEnergyEl = document.getElementById('maxEnergy');
-            const energyFill = document.getElementById('energyFill');
-            const tapBtn = document.getElementById('tapBtn');
-
-            if (tg?.initDataUnsafe?.user) {
-                const user = tg.initDataUnsafe.user;
-                document.getElementById('userName').innerText = user.first_name || 'المستخدم';
-                document.getElementById('userAvatar').innerText = (user.first_name || 'N').charAt(0).toUpperCase();
-                document.getElementById('refLink').value = `https://t.me/NiraEarnBot?start=ref_${user.id}`;
-            }
-
-            function updateUI() {
-                scoreEl.innerText = score.toLocaleString();
-                energyEl.innerText = energy;
-                maxEnergyEl.innerText = maxEnergy;
-                energyFill.style.width = `${(energy / maxEnergy) * 100}%`;
-                document.getElementById('multitapCost').innerText = multitapCost;
-                document.getElementById('energyCost').innerText = energyCost;
-            }
-
-            function triggerTap(e) {
-                if (energy < tapValue) return;
-                score += tapValue;
-                energy -= tapValue;
-                updateUI();
-                
-                try {
-                    if (tg?.HapticFeedback) tg.HapticFeedback.impactOccurred('light');
-                } catch(err) {}
-
-                createFloatingText(e, `+${tapValue}`);
-            }
-
-            tapBtn.addEventListener('pointerdown', (e) => {
-                e.preventDefault();
-                triggerTap(e);
-            });
-
-            function createFloatingText(e, text) {
-                const rect = tapBtn.getBoundingClientRect();
-                const x = e.clientX ? e.clientX - rect.left : rect.width / 2;
-                const y = e.clientY ? e.clientY - rect.top : rect.height / 2;
-                const floatNum = document.createElement('div');
-                floatNum.classList.add('floating-num');
-                floatNum.innerText = text;
-                floatNum.style.left = `${x}px`;
-                floatNum.style.top = `${y}px`;
-                tapBtn.parentElement.appendChild(floatNum);
-                setTimeout(() => { floatNum.remove(); }, 800);
-            }
-
-            setInterval(() => {
-                if (energy < maxEnergy) {
-                    energy = Math.min(maxEnergy, energy + 1);
-                    updateUI();
-                }
-            }, 1000);
-
-            document.getElementById('btnMultitap').addEventListener('click', () => {
-                if (score >= multitapCost) {
-                    score -= multitapCost;
-                    tapValue += 1;
-                    multitapCost *= 2;
-                    updateUI();
-                    alert('تمت ترقية قوة الضغط بنجاح! 🎉');
-                } else { alert('رصيدك غير كافٍ!'); }
-            });
-
-            document.getElementById('btnEnergyLimit').addEventListener('click', () => {
-                if (score >= energyCost) {
-                    score -= energyCost;
-                    maxEnergy += 500;
-                    energy += 500;
-                    energyCost *= 2;
-                    updateUI();
-                    alert('تم توسيع شريط الطاقة بنجاح! 🔋');
-                } else { alert('رصيدك غير كافٍ!'); }
-            });
-
-            document.getElementById('btnRefill').addEventListener('click', () => {
-                energy = maxEnergy;
-                updateUI();
-                alert('تم إعادة تعبئة الطاقة بالكامل! ⚡');
-            });
-
-            document.getElementById('task1Btn').addEventListener('click', function() {
-                if (tg) tg.openTelegramLink('https://t.me/NIRA_Earn');
-                setTimeout(() => {
-                    score += 1000;
-                    updateUI();
-                    this.innerText = 'تم الاستلام ✔️';
-                    this.disabled = true;
-                }, 1000);
-            });
-
-            document.getElementById('dailyBtn').addEventListener('click', function() {
-                score += 500;
-                updateUI();
-                this.innerText = 'تم اليوم ✔️';
-                this.disabled = true;
-            });
-
-            document.getElementById('btnCopyRef').addEventListener('click', () => {
-                const refInput = document.getElementById('refLink');
-                refInput.select();
-                navigator.clipboard?.writeText(refInput.value) || document.execCommand('copy');
-                alert('تم نسخ رابط الدعوة بنجاح! 📋');
-            });
-
-            document.getElementById('connectWalletBtn').addEventListener('click', function() {
-                walletConnected = !walletConnected;
-                const statusEl = document.getElementById('walletStatus');
-                if (walletConnected) {
-                    statusEl.innerText = 'المحفظة متصلة: EQB...x9Z8';
-                    statusEl.style.color = '#10b981';
-                    this.innerText = 'إلغاء الربط';
-                } else {
-                    statusEl.innerText = 'لم يتم ربط المحفظة';
-                    statusEl.style.color = '#ffffff';
-                    this.innerText = 'ربط Tonkeeper / TON 💎';
-                }
-            });
-
-            document.querySelectorAll('.nav-item').forEach(item => {
-                item.addEventListener('click', function() {
-                    const tabName = this.getAttribute('data-tab');
-                    document.querySelectorAll('.tab-content').forEach(tab => tab.classList.remove('active'));
-                    document.querySelectorAll('.nav-item').forEach(nav => nav.classList.remove('active'));
-                    
-                    document.getElementById(`tab-${tabName}`).classList.add('active');
-                    this.classList.add('active');
-
-                    try {
-                        if (tg?.HapticFeedback) tg.HapticFeedback.selectionChanged();
-                    } catch(err) {}
-                });
-            });
-
-            updateUI();
+      try {
+        await fetch('/api/campaigns/claim', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            userId: tg?.initDataUnsafe?.user?.id || 'demo_user',
+            campaignId: campaignId
+          })
         });
-    </script>
+        alert('تم تسجيل زيارتك، وسيتم إضافة المكافأة لحسابك!');
+      } catch (e) {
+        console.error(e);
+      }
+    }
+
+    async function handleCreateCampaign(e) {
+      e.preventDefault();
+      const payload = {
+        userId: tg?.initDataUnsafe?.user?.id || 'demo_user',
+        title: document.getElementById('title').value,
+        link: document.getElementById('link').value,
+        currency: document.getElementById('currency').value,
+        totalBudget: parseFloat(document.getElementById('totalBudget').value),
+        rewardPerView: parseFloat(document.getElementById('rewardPerView').value)
+      };
+
+      try {
+        const res = await fetch('/api/campaigns/create', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(payload)
+        });
+        const data = await res.json();
+
+        if (res.ok) {
+          alert('تم إنشاء الحملة بنجاح!');
+          document.getElementById('create-campaign-form').reset();
+          switchTab('tasks');
+        } else {
+          alert('خطأ: ' + (data.error || 'تعذر إنشاء الحملة'));
+        }
+      } catch (err) {
+        alert('حدث خطأ في الاتصال بالسيرفر.');
+      }
+    }
+
+    // التحميل الأولي
+    loadCampaigns();
+  </script>
 </body>
-  </html>
-              
+    </html>
+    
