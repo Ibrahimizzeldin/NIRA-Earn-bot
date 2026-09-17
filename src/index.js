@@ -1,5 +1,5 @@
 const express = require('express');
-const path = path = require('path');
+const path = require('path');
 const cors = require('cors');
 
 const app = express();
@@ -20,7 +20,7 @@ app.get('*', (req, res) => {
   res.sendFile(path.join(__dirname, '../public', 'index.html'));
 });
 
-// تصدير التطبيق لتشغيله كـ Serverless Function على Vercel
+// تصدير التطبيق لدعم Vercel
 module.exports = app;
 
 if (require.main === module) {
