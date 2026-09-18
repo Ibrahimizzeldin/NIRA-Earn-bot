@@ -1,317 +1,204 @@
 <!DOCTYPE html>
 <html lang="ar" dir="rtl">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>NIRA Earn Bot - الإعلانات والمهام</title>
-  <script src="https://telegram.org/js/telegram-web-app.js"></script>
-  <!-- Adsgram SDK -->
-  <script src="https://sad.adsgram.ai/js/sad-index.js"></script>
-  <style>
-    :root {
-      --bg-color: #0f172a;
-      --card-bg: #1e293b;
-      --accent-color: #3b82f6;
-      --text-color: #f8fafc;
-      --text-muted: #94a3b8;
-      --success-color: #22c55e;
-      --border-color: #334155;
-      --adsgram-color: #8b5cf6;
-    }
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>PaidZ - Mini App</title>
+    <!-- Telegram WebApp SDK -->
+    <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <!-- TON Connect UI SDK -->
+    <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
+    <style>
+        * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
+        body { background-color: #0b0e14; color: #fff; padding-bottom: 70px; }
+        .container { padding: 16px; max-width: 500px; margin: auto; }
+        
+        /* Navigation Bar */
+        .nav-bar { position: fixed; bottom: 0; left: 0; right: 0; background: #121824; display: flex; justify-content: space-around; padding: 10px 0; border-top: 1px solid #1f293d; z-index: 1000; }
+        .nav-item { background: none; border: none; color: #8a9ba8; font-size: 11px; display: flex; flex-direction: column; align-items: center; cursor: pointer; }
+        .nav-item.active { color: #f3ba2f; }
+        .nav-item span { font-size: 18px; margin-bottom: 2px; }
 
-    body {
-      margin: 0;
-      padding: 16px;
-      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
-      background-color: var(--bg-color);
-      color: var(--text-color);
-      direction: rtl;
-    }
+        /* Sections */
+        .section { display: none; }
+        .section.active { display: block; }
 
-    .container {
-      max-width: 480px;
-      margin: 0 auto;
-    }
-
-    .tabs {
-      display: flex;
-      gap: 8px;
-      margin-bottom: 20px;
-      background: var(--card-bg);
-      padding: 6px;
-      border-radius: 12px;
-      border: 1px solid var(--border-color);
-    }
-
-    .tab-btn {
-      flex: 1;
-      padding: 10px;
-      border: none;
-      background: transparent;
-      color: var(--text-muted);
-      font-weight: bold;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .tab-btn.active {
-      background: var(--accent-color);
-      color: #fff;
-    }
-
-    .tab-content {
-      display: none;
-    }
-
-    .tab-content.active {
-      display: block;
-    }
-
-    .card {
-      background: var(--card-bg);
-      border-radius: 14px;
-      padding: 16px;
-      margin-bottom: 12px;
-      border: 1px solid var(--border-color);
-    }
-
-    .adsgram-card {
-      border: 1px solid var(--adsgram-color);
-      background: linear-gradient(135deg, #1e293b 0%, #2e1065 100%);
-    }
-
-    .card-title {
-      font-size: 16px;
-      font-weight: bold;
-      margin-bottom: 6px;
-    }
-
-    .card-desc {
-      font-size: 13px;
-      color: var(--text-muted);
-      margin-bottom: 12px;
-    }
-
-    .card-footer {
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: 10px;
-    }
-
-    .reward-badge {
-      background: rgba(34, 197, 94, 0.15);
-      color: var(--success-color);
-      padding: 4px 10px;
-      border-radius: 20px;
-      font-size: 13px;
-      font-weight: bold;
-    }
-
-    .btn {
-      background: var(--accent-color);
-      color: #fff;
-      border: none;
-      padding: 8px 16px;
-      border-radius: 8px;
-      font-weight: bold;
-      cursor: pointer;
-    }
-
-    .btn-adsgram {
-      background: var(--adsgram-color);
-    }
-
-    .form-group {
-      margin-bottom: 14px;
-    }
-
-    .form-group label {
-      display: block;
-      font-size: 13px;
-      margin-bottom: 6px;
-      color: var(--text-muted);
-    }
-
-    .form-control {
-      width: 100%;
-      padding: 10px;
-      border-radius: 8px;
-      border: 1px solid var(--border-color);
-      background: #0f172a;
-      color: var(--text-color);
-      box-sizing: border-box;
-    }
-  </style>
+        /* Cards & UI Elements */
+        .card { background: #151c28; border-radius: 16px; padding: 16px; margin-bottom: 14px; border: 1px solid #1f293d; }
+        .balance-box { text-align: center; padding: 20px 0; }
+        .balance-num { font-size: 32px; font-weight: bold; color: #00ffcc; margin: 8px 0; }
+        .btn { background: #2f80ed; color: #fff; border: none; padding: 10px 20px; border-radius: 10px; font-weight: bold; width: 100%; cursor: pointer; text-align: center; }
+        .btn-success { background: #27ae60; }
+        
+        /* Lists & Items */
+        .list-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #1f293d; }
+        .list-item:last-child { border-bottom: none; }
+        .badge { background: #22304a; color: #f3ba2f; padding: 4px 8px; border-radius: 6px; font-size: 12px; }
+        
+        /* Ton Connect Container Fixes */
+        #ton-connect-button { display: flex; justify-content: center; margin-top: 10px; }
+    </style>
 </head>
 <body>
-  <div class="container">
-    <div class="tabs">
-      <button class="tab-btn active" onclick="switchTab('tasks')">🎯 المهام المتاحة</button>
-      <button class="tab-btn" onclick="switchTab('create')">➕ إنشاء حملة</button>
-    </div>
 
-    <!-- قسم المهام -->
-    <div id="tab-tasks" class="tab-content active">
-      <!-- كرت إعلانات الفيديو Adsgram -->
-      <div class="card adsgram-card">
-        <div class="card-title">🎬 شاهد فيديو واكسب GRAM</div>
-        <div class="card-desc">شاهد فيديو إعلاني قصير لمدة 15 ثانية وراكم أرباحك فوراً.</div>
-        <div class="card-footer">
-          <span class="reward-badge">+0.001 GRAM</span>
-          <button class="btn btn-adsgram" onclick="showAdsgramVideo()">مشاهدة الآن</button>
+    <div class="container">
+        <!-- 1. الرئيسية / PaidZ -->
+        <div id="home-section" class="section active">
+            <div class="card balance-box">
+                <p>مرحباً، أبو تميم</p>
+                <div class="balance-num" id="user-balance">0.0760 💎</div>
+                <button class="btn" onclick="withdrawFunds()">سحب الأرباح</button>
+            </div>
+            <div class="card">
+                <h3>مجمع الأرباح اليومي</h3>
+                <p style="color: #8a9ba8; font-size: 13px; margin-top: 5px;">الحد الأقصى اليومي: 0.155 USDT</p>
+            </div>
+            <div class="card">
+                <h3>شبكات الإعلانات والمميزات</h3>
+                <div class="list-item">
+                    <span>Adsgram (إعلانات فيديو)</span>
+                    <button class="btn" style="width: auto; padding: 6px 14px;" onclick="watchAd('Adsgram')">مشاهدة</button>
+                </div>
+                <div class="list-item">
+                    <span>Gigapub Premium Ads</span>
+                    <button class="btn" style="width: auto; padding: 6px 14px;" onclick="watchAd('Gigapub')">مشاهدة</button>
+                </div>
+            </div>
         </div>
-      </div>
 
-      <!-- قائمة الحملات الداخلية -->
-      <div id="campaigns-list">
-        <p style="text-align: center; color: var(--text-muted);">جاري تحميل الحملات...</p>
-      </div>
+        <!-- 2. المهام / Tasks -->
+        <div id="tasks-section" class="section">
+            <h2>المهام اليومية والخاصة</h2>
+            <div class="card" style="margin-top: 15px;">
+                <div class="list-item">
+                    <div>
+                        <h4>عجلة الحظ اليومية</h4>
+                        <p style="font-size: 12px; color: #8a9ba8;">اربح حتى 0.20 USDT</p>
+                    </div>
+                    <button class="btn" style="width: auto;" onclick="spinWheel()">تدوير</button>
+                </div>
+                <div class="list-item">
+                    <div>
+                        <h4>مكافأة تسجيل الدخول اليومية</h4>
+                        <p style="font-size: 12px; color: #8a9ba8;">0.0001+ USDT</p>
+                    </div>
+                    <button class="btn btn-success" style="width: auto;" onclick="claimDaily()">استلام</button>
+                </div>
+            </div>
+        </div>
+
+        <!-- 3. الأصدقاء / Referrals -->
+        <div id="referrals-section" class="section">
+            <h2>دعوة الأصدقاء</h2>
+            <div class="card" style="margin-top: 15px;">
+                <p>نظام الإحالة ذو المستوى الإضافي (L1: 10% - L2: 4%)</p>
+                <div class="balance-num" style="font-size: 20px;" id="ref-count">0 أصدقاء</div>
+                <button class="btn" style="margin-top: 10px;" onclick="copyRefLink()">نسخ رابط الإحالة</button>
+            </div>
+        </div>
+
+        <!-- 4. المسابقات / Competition -->
+        <div id="competition-section" class="section">
+            <h2>الجائزة الكبرى اليومية</h2>
+            <div class="card" style="margin-top: 15px;">
+                <p>مجموع الجوائز الحالية:</p>
+                <div class="balance-num">7.04 USDT</div>
+                <p style="font-size: 12px; color: #f3ba2f;">عدد الفائزين الحاليين: 18 فائزاً</p>
+            </div>
+        </div>
+
+        <!-- 5. الحساب / Profile -->
+        <div id="profile-section" class="section">
+            <h2>إعدادات الحساب والمحفظة</h2>
+            <div class="card" style="margin-top: 15px;">
+                <div class="list-item">
+                    <span>حالة العضوية</span>
+                    <span class="badge">برونزي - أساسي</span>
+                </div>
+                <div style="padding: 15px 0;">
+                    <p style="margin-bottom: 10px; font-size: 14px; color: #8a9ba8;">ربط محفظة TON الحقيقي:</p>
+                    <!-- زر ربط المحفظة الحقيقي الذي يتم إنشاؤه عبر مكتبة TonConnect -->
+                    <div id="ton-connect-button"></div>
+                </div>
+                <div class="list-item">
+                    <span>إشعارات البوت</span>
+                    <span style="color: #27ae60;">مفعلة</span>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <!-- قسم إنشاء حملة -->
-    <div id="tab-create" class="tab-content">
-      <div class="card">
-        <div class="card-title">إنشاء حملة إعلانية جديدة</div>
-        <div class="card-desc">ترويج لقناتك أو رابطك واجلب الزوار مقابل مكافآت بالـ GRAM أو USDT</div>
-        
-        <form id="create-campaign-form" onsubmit="handleCreateCampaign(event)">
-          <div class="form-group">
-            <label>عنوان الحملة / المهمة</label>
-            <input type="text" id="title" class="form-control" placeholder="مثال: انضم لقناتنا على التليجرام" required>
-          </div>
-
-          <div class="form-group">
-            <label>رابط الهدف (URL)</label>
-            <input type="url" id="targetUrl" class="form-control" placeholder="https://t.me/your_channel" required>
-          </div>
-
-          <div class="form-group">
-            <label>نوع الحملة</label>
-            <select id="campaignType" class="form-control">
-              <option value="direct">زيارة مباشرة</option>
-              <option value="with_verification">اشتراك مع تحقق آلي</option>
-              <option value="banner">بنر مميز</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label>عملة الدفع</label>
-            <select id="currency" class="form-control">
-              <option value="GRAM">GRAM</option>
-              <option value="USDT">USDT</option>
-            </select>
-          </div>
-
-          <div class="form-group">
-            <label>عدد النقرات المطلوبة</label>
-            <input type="number" id="clicks" class="form-control" placeholder="100" required>
-          </div>
-
-          <button type="submit" class="btn" style="width: 100%;">إطلاق الحملة الآن</button>
-        </form>
-      </div>
+    <!-- شريط التنقل السفلي -->
+    <div class="nav-bar">
+        <button class="nav-item active" onclick="switchTab('home', this)"><span>🏠</span>الرئيسية</button>
+        <button class="nav-item" onclick="switchTab('tasks', this)"><span>📋</span>المهام</button>
+        <button class="nav-item" onclick="switchTab('referrals', this)"><span>👥</span>الأصدقاء</button>
+        <button class="nav-item" onclick="switchTab('competition', this)"><span>🏆</span>المسابقة</button>
+        <button class="nav-item" onclick="switchTab('profile', this)"><span>⚙️</span>الحساب</button>
     </div>
-  </div>
 
-  <script>
-    const tg = window.Telegram?.WebApp;
-    if (tg) tg.expand();
-
-    const AdController = window.Adsgram ? window.Adsgram.init({ blockId: "YOUR_BLOCK_ID" }) : null;
-
-    function switchTab(tabName) {
-      document.querySelectorAll('.tab-btn').forEach(btn => btn.classList.remove('active'));
-      document.querySelectorAll('.tab-content').forEach(content => content.classList.remove('active'));
-
-      if (tabName === 'tasks') {
-        document.querySelectorAll('.tab-btn')[0].classList.add('active');
-        document.getElementById('tab-tasks').classList.add('active');
-        loadCampaigns();
-      } else {
-        document.querySelectorAll('.tab-btn')[1].classList.add('active');
-        document.getElementById('tab-create').classList.add('active');
-      }
-    }
-
-    async function loadCampaigns() {
-      const container = document.getElementById('campaigns-list');
-      try {
-        const res = await fetch('/api/campaigns');
-        const campaigns = await res.json();
-
-        if (!campaigns || campaigns.length === 0) {
-          container.innerHTML = '<div class="card"><p style="text-align:center; color: var(--text-muted);">لا توجد حملات متاحة حالياً.</p></div>';
-          return;
+    <script>
+        // التهيئة والتنقل بين القوائم
+        function switchTab(tabName, element) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            
+            document.getElementById(tabName + '-section').classList.add('active');
+            element.classList.add('active');
         }
 
-        container.innerHTML = campaigns.map(c => `
-          <div class="card">
-            <div class="card-title">${c.title}</div>
-            <div class="card-desc">نوع الحملة: ${c.type}</div>
-            <div class="card-footer">
-              <span class="reward-badge">${c.currency}</span>
-              <button class="btn" onclick="openCampaign('${c.url}')">تنفيذ المهمة</button>
-            </div>
-          </div>
-        `).join('');
-      } catch (err) {
-        container.innerHTML = '<div class="card"><p style="text-align:center; color:red;">خطأ في تحميل الحملات.</p></div>';
-      }
-    }
-
-    function openCampaign(url) {
-      if (tg && tg.openTelegramLink) {
-        tg.openTelegramLink(url);
-      } else {
-        window.open(url, '_blank');
-      }
-    }
-
-    function showAdsgramVideo() {
-      if (!AdController) {
-        alert('إعلانات الفيديو غير متاحة حالياً.');
-        return;
-      }
-      AdController.show().then((result) => {
-        alert('شكرًا لمشاهدتك! تم إيداع المكافأة في رصيدك.');
-      }).catch((result) => {
-        alert('لم تكتمل مشاهدة الإعلان.');
-      });
-    }
-
-    async function handleCreateCampaign(e) {
-      e.preventDefault();
-      const payload = {
-        title: document.getElementById('title').value,
-        url: document.getElementById('targetUrl').value,
-        type: document.getElementById('campaignType').value,
-        currency: document.getElementById('currency').value,
-        clicks_required: parseInt(document.getElementById('clicks').value)
-      };
-
-      try {
-        const res = await fetch('/api/campaigns', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(payload)
+        // إعدادات وتفعيل ربط محفظة TON الحقيقي
+        const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+            manifestUrl: window.location.origin + '/tonconnect-manifest.json',
+            buttonRootId: 'ton-connect-button'
         });
 
-        if (res.ok) {
-          alert('تم إطلاق الحملة بنجاح!');
-          document.getElementById('create-campaign-form').reset();
-          switchTab('tasks');
-        } else {
-          alert('خطأ في إنشاء الحملة');
-        }
-      } catch (err) {
-        alert('حدث خطأ أثناء الاتصال بالخادم.');
-      }
-    }
+        // الاستماع لحالة الاتصال الحقيقي بالمحفظة
+        tonConnectUI.onStatusChange(walletInfo => {
+            if (walletInfo) {
+                const userAddress = walletInfo.account.address;
+                console.log("تم الاتصال بنجاح بالمحفظة:", userAddress);
+                if (window.Telegram && window.Telegram.WebApp) {
+                    window.Telegram.WebApp.showAlert("تم ربط المحفظة بنجاح بنجاح!\nالعنوان: " + userAddress.substring(0, 6) + "...");
+                }
+            } else {
+                console.log("تم قطع الاتصال بالمحفظة");
+            }
+        });
 
-    loadCampaigns();
-  </script>
+        // دوال تفاعلية للأزرار
+        function watchAd(network) {
+            if (window.Telegram && window.Telegram.WebApp) {
+                window.Telegram.WebApp.HapticFeedback.impactOccurred('medium');
+            }
+            alert('جارِ بدء عرض إعلان شبكة ' + network + '...');
+        }
+
+        function spinWheel() {
+            alert('جاري تدوير عجلة الحظ...');
+        }
+
+        function claimDaily() {
+            alert('تم استلام المكافأة اليومية بنجاح!');
+        }
+
+        function withdrawFunds() {
+            const connectedWallet = tonConnectUI.wallet;
+            if (!connectedWallet) {
+                alert('يرجى ربط محفظة TON أولاً من قسم الحساب للسحب!');
+                switchTab('profile', document.querySelectorAll('.nav-item')[4]);
+                return;
+            }
+            alert('جارِ معالجة طلب السحب إلى محفظتك المرتبطة...');
+        }
+
+        function copyRefLink() {
+            const refLink = "https://t.me/PAIDZ_BOT/start?startapp=ref_user";
+            navigator.clipboard.writeText(refLink).then(() => {
+                alert('تم نسخ رابط الإحالة الخاص بك!');
+            });
+        }
+    </script>
 </body>
-          </html>
-  
+                  </html>
+                  
