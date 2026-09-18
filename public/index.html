@@ -117,7 +117,6 @@
                 </div>
                 <div style="padding: 15px 0;">
                     <p style="margin-bottom: 10px; font-size: 14px; color: #8a9ba8;">ربط محفظة TON الحقيقي:</p>
-                    <!-- زر ربط المحفظة الحقيقي الذي يتم إنشاؤه عبر مكتبة TonConnect -->
                     <div id="ton-connect-button"></div>
                 </div>
                 <div class="list-item">
@@ -138,7 +137,6 @@
     </div>
 
     <script>
-        // التهيئة والتنقل بين القوائم
         function switchTab(tabName, element) {
             document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
@@ -147,26 +145,23 @@
             element.classList.add('active');
         }
 
-        // إعدادات وتفعيل ربط محفظة TON الحقيقي
         const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
             manifestUrl: window.location.origin + '/tonconnect-manifest.json',
             buttonRootId: 'ton-connect-button'
         });
 
-        // الاستماع لحالة الاتصال الحقيقي بالمحفظة
         tonConnectUI.onStatusChange(walletInfo => {
             if (walletInfo) {
                 const userAddress = walletInfo.account.address;
                 console.log("تم الاتصال بنجاح بالمحفظة:", userAddress);
                 if (window.Telegram && window.Telegram.WebApp) {
-                    window.Telegram.WebApp.showAlert("تم ربط المحفظة بنجاح بنجاح!\nالعنوان: " + userAddress.substring(0, 6) + "...");
+                    window.Telegram.WebApp.showAlert("تم ربط المحفظة بنجاح!\nالعنوان: " + userAddress.substring(0, 6) + "...");
                 }
             } else {
                 console.log("تم قطع الاتصال بالمحفظة");
             }
         });
 
-        // دوال تفاعلية للأزرار
         function watchAd(network) {
             if (window.Telegram && window.Telegram.WebApp) {
                 window.Telegram.WebApp.HapticFeedback.impactOccurred('medium');
@@ -200,5 +195,5 @@
         }
     </script>
 </body>
-                  </html>
-                  
+    </html>
+    
