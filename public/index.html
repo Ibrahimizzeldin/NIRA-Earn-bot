@@ -190,9 +190,9 @@
           <div class="form-group">
             <label>نوع الحملة</label>
             <select id="campaignType" class="form-control">
-              <option value="direct">زيارة مباشرة ($0.0025)</option>
-              <option value="with_verification">اشتراك مع تحقق آلي ($0.0030)</option>
-              <option value="banner">بنر مميز ($0.0050)</option>
+              <option value="direct">زيارة مباشرة</option>
+              <option value="with_verification">اشتراك مع تحقق آلي</option>
+              <option value="banner">بنر مميز</option>
             </select>
           </div>
 
@@ -219,7 +219,6 @@
     const tg = window.Telegram?.WebApp;
     if (tg) tg.expand();
 
-    // تهيئة Adsgram (استبدل YOUR_BLOCK_ID بمعرف الكتلة الخاص بك من لوحة Adsgram)
     const AdController = window.Adsgram ? window.Adsgram.init({ blockId: "YOUR_BLOCK_ID" }) : null;
 
     function switchTab(tabName) {
@@ -238,23 +237,22 @@
 
     async function loadCampaigns() {
       const container = document.getElementById('campaigns-list');
-      const userId = tg?.initDataUnsafe?.user?.id || 'demo_user';
       try {
-        const res = await fetch(`/api/campaigns/available/${userId}`);
-        const data = await res.json();
+        const res = await fetch('/api/campaigns');
+        const campaigns = await res.json();
 
-        if (!data.campaigns || data.campaigns.length === 0) {
-          container.innerHTML = '<div class="card"><p style="text-align:center;">لا توجد حملات متاحة حالياً.</p></div>';
+        if (!campaigns || campaigns.length === 0) {
+          container.innerHTML = '<div class="card"><p style="text-align:center; color: var(--text-muted);">لا توجد حملات متاحة حالياً.</p></div>';
           return;
         }
 
-        container.innerHTML = data.campaigns.map(c => `
+        container.innerHTML = campaigns.map(c => `
           <div class="card">
             <div class="card-title">${c.title}</div>
-            <div class="card-desc">${c.description || 'أكمل المهمة للحصول على المكافأة.'}</div>
+            <div class="card-desc">نوع الحملة: ${c.type}</div>
             <div class="card-footer">
-              <span class="reward-badge">+${(c.cost_per_click * 0.6).toFixed(4)} ${c.currency}</span>
-              <button class="btn" onclick="verifyTask('${c.id}', '${c.target_url}')">تنفيذ المهمة</button>
+              <span class="reward-badge">${c.currency}</span>
+              <button class="btn" onclick="openCampaign('${c.url}')">تنفيذ المهمة</button>
             </div>
           </div>
         `).join('');
@@ -263,28 +261,11 @@
       }
     }
 
-    async function verifyTask(campaignId, targetUrl) {
-      if (tg) tg.openTelegramLink ? tg.openTelegramLink(targetUrl) : tg.openLink(targetUrl);
-      else window.open(targetUrl, '_blank');
-
-      const userId = tg?.initDataUnsafe?.user?.id || 'demo_user';
-
-      try {
-        const res = await fetch('/api/campaigns/verify', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ telegramId: userId, campaignId })
-        });
-        const data = await res.json();
-
-        if (res.ok) {
-          alert(`تمت المهمة بنجاح! تم إضافة ${data.reward} ${data.currency} لرصيدك.`);
-          loadCampaigns();
-        } else {
-          alert(data.error || 'فشل التحقق من المهمة');
-        }
-      } catch (e) {
-        alert('حدث خطأ في الاتصال بالخادم');
+    function openCampaign(url) {
+      if (tg && tg.openTelegramLink) {
+        tg.openTelegramLink(url);
+      } else {
+        window.open(url, '_blank');
       }
     }
 
@@ -294,7 +275,6 @@
         return;
       }
       AdController.show().then((result) => {
-        // إضافة المكافأة بعد المشاهدة الكاملة
         alert('شكرًا لمشاهدتك! تم إيداع المكافأة في رصيدك.');
       }).catch((result) => {
         alert('لم تكتمل مشاهدة الإعلان.');
@@ -304,28 +284,26 @@
     async function handleCreateCampaign(e) {
       e.preventDefault();
       const payload = {
-        telegramId: tg?.initDataUnsafe?.user?.id || 'demo_user',
         title: document.getElementById('title').value,
-        targetUrl: document.getElementById('targetUrl').value,
-        campaignType: document.getElementById('campaignType').value,
+        url: document.getElementById('targetUrl').value,
+        type: document.getElementById('campaignType').value,
         currency: document.getElementById('currency').value,
-        clicks: parseInt(document.getElementById('clicks').value)
+        clicks_required: parseInt(document.getElementById('clicks').value)
       };
 
       try {
-        const res = await fetch('/api/campaigns/create', {
+        const res = await fetch('/api/campaigns', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify(payload)
         });
-        const data = await res.json();
 
         if (res.ok) {
           alert('تم إطلاق الحملة بنجاح!');
           document.getElementById('create-campaign-form').reset();
           switchTab('tasks');
         } else {
-          alert('خطأ: ' + (data.error || 'فشل إنشاء الحملة'));
+          alert('خطأ في إنشاء الحملة');
         }
       } catch (err) {
         alert('حدث خطأ أثناء الاتصال بالخادم.');
@@ -335,4 +313,5 @@
     loadCampaigns();
   </script>
 </body>
-</html>
+          </html>
+  
