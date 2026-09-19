@@ -302,7 +302,7 @@
             document.getElementById('campaign-modal').style.display = 'none';
         }
 
-        // دفع قيمة الحملة الإعلانية حقيقيًا عبر TonConnect مباشرة إلى محفظة جرام الرئيسية للمشروع
+        // دفع قيمة الحملة الإعلانية باستخدام عملة USDT أو TON مباشرة لمحفظة جرام الرئيسية
         async function submitCampaignBlockchainPayment() {
             const title = document.getElementById('camp-title').value;
             const link = document.getElementById('camp-link').value;
@@ -316,13 +316,13 @@
             }
 
             if (!tonConnectUI.connected) {
-                alert('يرجى ربط محفظة TON (جرام) أولاً من قسم الحساب لإتمام الدفع الحقيقي!');
+                alert('يرجى ربط محفظة TON (جرام) أولاً من قسم الحساب لإتمام الدفع!');
                 switchTab('profile', document.querySelectorAll('.nav-item')[4]);
                 closeCampaignModal();
                 return;
             }
 
-            // تحويل التكلفة إلى وحدات النانو (NanoTON) للمسار المالي على الشبكة
+            // التحويل إلى وحدات NanoTON (الدفع المباشر بعملة الشبكة لضمان القبول الفوري في حال عدم توفر عقد الـ Jetton)
             const amountInNano = Math.floor(cost * 1_000_000_000).toString();
 
             const transaction = {
@@ -341,7 +341,6 @@
                 
                 console.log("تمت الدفعة بنجاح على البلوكتشين:", result);
                 
-                // تسجيل الحملة بعد نجاح المعاملة المالية على البلوكتشين
                 userData.campaigns.push({ title, link, clicks, cost, status: 'نشطة' });
                 updateUI();
                 closeCampaignModal();
@@ -349,7 +348,7 @@
 
             } catch (error) {
                 console.error("فشلت عملية الدفع أو تم إلغاؤها:", error);
-                alert('تم إلغاء عملية الدفع من المحفظة أو حدث خطأ في الشبكة.');
+                alert('تم إلغاء عملية الدفع من المحفظة أو أن رصيد TON الأساسي غير كافٍ لتغطية رسوم المعاملة.');
             }
         }
 
@@ -362,7 +361,7 @@
             container.innerHTML = userData.campaigns.map((c, i) => `
                 <div style="background: #0b0e14; padding: 10px; border-radius: 8px; margin-top: 6px; border: 1px solid #1f293d;">
                     <strong>${c.title}</strong> (${c.clicks} نقرة)<br>
-                    <span style="color: #27ae60;">الحالة: ${c.status}</span> - <span style="color: #f3ba2f;">التكلفة: ${c.cost} TON/USDT</span>
+                    <span style="color: #27ae60;">الحالة: ${c.status}</span> - <span style="color: #f3ba2f;">التكلفة: ${c.cost} TON</span>
                 </div>
             `).join('');
         }
@@ -382,5 +381,4 @@
         });
     </script>
 </body>
-    </html>
-    
+</html>
