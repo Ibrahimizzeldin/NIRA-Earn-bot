@@ -144,7 +144,7 @@
                     <span class="badge">برونزي - أساسي</span>
                 </div>
                 <div style="padding: 15px 0;">
-                    <p style="margin-bottom: 10px; font-size: 14px; color: #8a9ba8;">ربط محفظة TON (متوافق مع Gram & Tonkeeper):</p>
+                    <p style="margin-bottom: 10px; font-size: 14px; color: #8a9ba8;">ربط محفظة TON (متوافق مع Gram & Tonkeeper - يدعم TON & USDT):</p>
                     <div id="ton-connect-button"></div>
                 </div>
                 <div class="list-item">
@@ -178,13 +178,13 @@
             <div class="form-group">
                 <label>عدد النقرات والتكلفة الإجمالية</label>
                 <select class="form-control" id="camp-clicks">
-                    <option value="100" data-cost="0.30">100 نقرة - التكلفة: 0.30 USDT</option>
-                    <option value="200" data-cost="0.55">200 نقرة - التكلفة: 0.55 USDT</option>
-                    <option value="300" data-cost="0.80">300 نقرة - التكلفة: 0.80 USDT</option>
-                    <option value="500" data-cost="1.25">500 نقرة - التكلفة: 1.25 USDT</option>
+                    <option value="100" data-cost="0.30">100 نقرة - التكلفة: 0.30 USDT / TON</option>
+                    <option value="200" data-cost="0.55">200 نقرة - التكلفة: 0.55 USDT / TON</option>
+                    <option value="300" data-cost="0.80">300 نقرة - التكلفة: 0.80 USDT / TON</option>
+                    <option value="500" data-cost="1.25">500 نقرة - التكلفة: 1.25 USDT / TON</option>
                 </select>
             </div>
-            <button class="btn btn-success" onclick="submitCampaign()">تأكيد ودفع الحملة من الرصيد</button>
+            <button class="btn btn-success" onclick="submitCampaignBlockchainPayment()">دفع وتأكيد الحملة عبر محفظة جرام</button>
             <button class="btn btn-secondary" onclick="closeCampaignModal()" style="margin-top: 8px;">إغلاق</button>
         </div>
     </div>
@@ -199,6 +199,9 @@
     </div>
 
     <script>
+        // عنوان محفظة جرام الرئيسية للمشروع (تستقبل TON و USDT)
+        const ADMIN_WALLET_ADDRESS = "UQCx6wbqhw4II0OfHhvR4lo9S6Zs4xGSejRqctmACnZ92D5k";
+
         let userData = JSON.parse(localStorage.getItem('nira_user_data')) || {
             balance: 0.0760,
             referrals: 0,
@@ -273,8 +276,8 @@
         }
 
         function withdrawFunds() {
-            if (!tonConnectUI.wallet) {
-                alert('يرجى ربط محفظة TON أولاً من قسم الحساب للسحب!');
+            if (!tonConnectUI.connected) {
+                alert('يرجى ربط محفظة TON (جرام) أولاً من قسم الحساب للسحب!');
                 switchTab('profile', document.querySelectorAll('.nav-item')[4]);
                 return;
             }
@@ -299,7 +302,8 @@
             document.getElementById('campaign-modal').style.display = 'none';
         }
 
-        function submitCampaign() {
+        // دفع قيمة الحملة الإعلانية حقيقيًا عبر TonConnect مباشرة إلى محفظة جرام الرئيسية للمشروع
+        async function submitCampaignBlockchainPayment() {
             const title = document.getElementById('camp-title').value;
             const link = document.getElementById('camp-link').value;
             const clicksSelect = document.getElementById('camp-clicks');
@@ -311,16 +315,42 @@
                 return;
             }
 
-            if (userData.balance < cost) {
-                alert('رصيدك غير كافي لإنشاء هذه الحملة! يجدر بك جمع المزيد من الأرباح.');
+            if (!tonConnectUI.connected) {
+                alert('يرجى ربط محفظة TON (جرام) أولاً من قسم الحساب لإتمام الدفع الحقيقي!');
+                switchTab('profile', document.querySelectorAll('.nav-item')[4]);
+                closeCampaignModal();
                 return;
             }
 
-            userData.balance -= cost;
-            userData.campaigns.push({ title, link, clicks, cost, status: 'نشطة' });
-            updateUI();
-            closeCampaignModal();
-            alert('تم إنشاء الحملة الإعلانية بنجاح وخصم التكلفة من رصيدك!');
+            // تحويل التكلفة إلى وحدات النانو (NanoTON) للمسار المالي على الشبكة
+            const amountInNano = Math.floor(cost * 1_000_000_000).toString();
+
+            const transaction = {
+                validUntil: Math.floor(Date.now() / 1000) + 360,
+                messages: [
+                    {
+                        address: ADMIN_WALLET_ADDRESS, // محفظة جرام الرئيسية الموحدة للمشروع
+                        amount: amountInNano,
+                    }
+                ]
+            };
+
+            try {
+                console.log("جاري إرسال المعاملة إلى محفظة جرام للمشروع...");
+                const result = await tonConnectUI.sendTransaction(transaction);
+                
+                console.log("تمت الدفعة بنجاح على البلوكتشين:", result);
+                
+                // تسجيل الحملة بعد نجاح المعاملة المالية على البلوكتشين
+                userData.campaigns.push({ title, link, clicks, cost, status: 'نشطة' });
+                updateUI();
+                closeCampaignModal();
+                alert('تم دفع قيمة الحملة بنجاح ووصلت إلى محفظة جرام الرئيسية للمشروع!');
+
+            } catch (error) {
+                console.error("فشلت عملية الدفع أو تم إلغاؤها:", error);
+                alert('تم إلغاء عملية الدفع من المحفظة أو حدث خطأ في الشبكة.');
+            }
         }
 
         function renderCampaigns() {
@@ -332,7 +362,7 @@
             container.innerHTML = userData.campaigns.map((c, i) => `
                 <div style="background: #0b0e14; padding: 10px; border-radius: 8px; margin-top: 6px; border: 1px solid #1f293d;">
                     <strong>${c.title}</strong> (${c.clicks} نقرة)<br>
-                    <span style="color: #27ae60;">الحالة: ${c.status}</span>
+                    <span style="color: #27ae60;">الحالة: ${c.status}</span> - <span style="color: #f3ba2f;">التكلفة: ${c.cost} TON/USDT</span>
                 </div>
             `).join('');
         }
@@ -346,7 +376,7 @@
             if (walletInfo) {
                 console.log("تم الاتصال بالمحفظة بنجاح");
                 if (window.Telegram && window.Telegram.WebApp) {
-                    window.Telegram.WebApp.showAlert("تم ربط المحفظة بنجاح دون أخطاء!");
+                    window.Telegram.WebApp.showAlert("تم ربط محفظة جرام بنجاح!");
                 }
             }
         });
