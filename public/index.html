@@ -156,11 +156,13 @@
                 <input type="text" class="form-control" id="camp-title" placeholder="مثال: اشترك في القناة واكسب">
             </div>
             <div class="form-group">
-                <label>عدد النقرات / الإكمالات</label>
+                <label>عدد النقرات والتكلفة الإجمالية</label>
                 <select class="form-control" id="camp-clicks">
-                    <option value="100">100 نقرة</option>
-                    <option value="500">500 نقرة</option>
-                    <option value="1000">1000 نقرة</option>
+                    <option value="100">100 نقرة - التكلفة: 0.30 USDT</option>
+                    <option value="200">200 نقرة - التكلفة: 0.55 USDT</option>
+                    <option value="300">300 نقرة - التكلفة: 0.80 USDT</option>
+                    <option value="500">500 نقرة - التكلفة: 1.25 USDT</option>
+                    <option value="1000">1000 نقرة - التكلفة: 2.40 USDT</option>
                 </select>
             </div>
             <div class="form-group">
@@ -205,12 +207,11 @@
             element.classList.add('active');
         }
 
-        // احتساب المكافأة الصافية للمستخدم داخلياً بنسبة 40% بدون إظهار النسبة في الواجهة
         function watchAdReward(adValue, networkName) {
             if (window.Telegram && window.Telegram.WebApp) {
                 window.Telegram.WebApp.HapticFeedback.impactOccurred('medium');
             }
-            let userReward = adValue * 0.40; // منطق داخلي خفي
+            let userReward = adValue * 0.40;
             userData.balance += userReward;
             updateUI();
             alert(`تم مشاهدة إعلان ${networkName} بنجاح!\nتمت إضافة مكافأتك: +${userReward.toFixed(4)} USDT`);
@@ -221,7 +222,7 @@
                 window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
             }
             let adCost = 0.05;
-            let userReward = adCost * 0.40; // منطق داخلي خفي
+            let userReward = adCost * 0.40;
             userData.balance += userReward;
             updateUI();
             alert(`مبروك! قمت بتدوير العجلة بنجاح بعد مشاهدة الإعلان.\nربحت: +${userReward.toFixed(4)} USDT`);
@@ -276,7 +277,6 @@
             closeCampaignModal();
         }
 
-        // ربط محفظة TON مع التأكد من صحة مسار الـ Manifest
         const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
             manifestUrl: window.location.origin + '/tonconnect-manifest.json',
             buttonRootId: 'ton-connect-button'
