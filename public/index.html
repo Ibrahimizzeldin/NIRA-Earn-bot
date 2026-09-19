@@ -49,7 +49,7 @@
 <body>
 
     <div class="container">
-        <!-- 1. الرئيسية / الرئيسية -->
+        <!-- 1. الرئيسية -->
         <div id="home-section" class="section active">
             <div class="card balance-box">
                 <p>مرحباً، <span id="profile-name">أبو تميم</span></p>
@@ -62,7 +62,7 @@
                 <p style="color: #8a9ba8; font-size: 13px; margin-top: 5px;">الحد الأقصى اليومي: 0.155 USDT</p>
             </div>
             <div class="card">
-                <h3>شبكات الإعلانات والمميزات (عائد 40%)</h3>
+                <h3>شبكات الإعلانات والمميزات</h3>
                 <div class="list-item">
                     <span>Adsgram (مشاهدة إعلان)</span>
                     <button class="btn" style="width: auto; padding: 6px 14px;" onclick="watchAdReward(0.0100, 'Adsgram')">مشاهدة (+0.004 USDT)</button>
@@ -81,7 +81,7 @@
                 <div class="list-item">
                     <div>
                         <h4>عجلة الحظ اليومية</h4>
-                        <p style="font-size: 12px; color: #8a9ba8;">شاهد إعلان لتدوير العجلة (اربح 40% من قيمة الإعلان)</p>
+                        <p style="font-size: 12px; color: #8a9ba8;">شاهد إعلان لتدوير العجلة وربح الجوائز</p>
                     </div>
                     <button class="btn" style="width: auto;" onclick="spinWheelAction()">تدوير</button>
                 </div>
@@ -164,7 +164,7 @@
                 </select>
             </div>
             <div class="form-group">
-                <label>طريقة الدفع</label>
+                <label>طريقة الدفع (بدون نجوم تليجرام)</label>
                 <select class="form-control" id="camp-pay">
                     <option value="usdt">USDT (أو الرصيد الداخلي)</option>
                     <option value="gram">عملة GRAM</option>
@@ -185,7 +185,6 @@
     </div>
 
     <script>
-        // إدارة البيانات المحلية وحفظ الرصيد الحقيقي
         let userData = JSON.parse(localStorage.getItem('nira_user_data')) || {
             balance: 0.0760,
             referrals: 0,
@@ -206,25 +205,23 @@
             element.classList.add('active');
         }
 
-        // نظام احتساب عائد 40% للمستخدم عند مشاهدة الإعلانات أو إتمام المهام
+        // احتساب المكافأة الصافية للمستخدم داخلياً بنسبة 40% بدون إظهار النسبة في الواجهة
         function watchAdReward(adValue, networkName) {
             if (window.Telegram && window.Telegram.WebApp) {
                 window.Telegram.WebApp.HapticFeedback.impactOccurred('medium');
             }
-            // 40% للمستخدم / 60% للمنصة
-            let userReward = adValue * 0.40;
+            let userReward = adValue * 0.40; // منطق داخلي خفي
             userData.balance += userReward;
             updateUI();
-            alert(`تم مشاهدة إعلان ${networkName} بنجاح!\nتمت إضافة مكافأتك (40%): +${userReward.toFixed(4)} USDT`);
+            alert(`تم مشاهدة إعلان ${networkName} بنجاح!\nتمت إضافة مكافأتك: +${userReward.toFixed(4)} USDT`);
         }
 
         function spinWheelAction() {
             if (window.Telegram && window.Telegram.WebApp) {
                 window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
             }
-            // محاكاة إعلان عجلة الحظ بقيمة إعلانية 0.05 USDT (المستخدم يأخذ 40% = 0.02)
             let adCost = 0.05;
-            let userReward = adCost * 0.40;
+            let userReward = adCost * 0.40; // منطق داخلي خفي
             userData.balance += userReward;
             updateUI();
             alert(`مبروك! قمت بتدوير العجلة بنجاح بعد مشاهدة الإعلان.\nربحت: +${userReward.toFixed(4)} USDT`);
@@ -262,7 +259,6 @@
             });
         }
 
-        // تفاعل نافذة الحملات الإعلانية
         function openCampaignModal() {
             document.getElementById('campaign-modal').style.display = 'flex';
         }
@@ -280,7 +276,7 @@
             closeCampaignModal();
         }
 
-        // ربط محفظة TON
+        // ربط محفظة TON مع التأكد من صحة مسار الـ Manifest
         const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
             manifestUrl: window.location.origin + '/tonconnect-manifest.json',
             buttonRootId: 'ton-connect-button'
@@ -297,5 +293,5 @@
         });
     </script>
 </body>
-            </html>
-            
+    </html>
+    
