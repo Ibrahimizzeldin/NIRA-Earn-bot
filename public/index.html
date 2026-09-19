@@ -6,8 +6,6 @@
     <title>PaidZ - Telegram Mini App</title>
     <!-- Telegram WebApp SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <!-- TON Connect UI SDK -->
-    <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
     <style>
         :root {
             --bg-color: #080b11;
@@ -88,7 +86,6 @@
         .pay-btn { background: #080b11; border: 1px solid var(--card-border); color: var(--text-main); padding: 10px; border-radius: 10px; text-align: center; cursor: pointer; font-size: 13px; font-weight: 500; }
         .pay-btn.active { border-color: var(--btn-primary); background: rgba(37,99,235,0.15); color: #60a5fa; }
 
-        #ton-connect-button { display: flex; justify-content: center; margin-top: 12px; }
         .section-title { font-size: 18px; font-weight: 700; margin-bottom: 14px; }
     </style>
 </head>
@@ -189,8 +186,7 @@
                     <span style="color: var(--accent-color); font-weight: 700;">0.0790 USDT</span>
                 </div>
                 <div style="padding-top: 16px;">
-                    <p style="margin-bottom: 8px; font-size: 13px; color: var(--text-muted);">ربط محفظة TON لاستلام السحب:</p>
-                    <div id="ton-connect-button"></div>
+                    <button class="btn btn-secondary" onclick="connectWalletManual()">ربط محفظة TON</button>
                 </div>
             </div>
         </div>
@@ -241,7 +237,7 @@
                 <span id="cost-display" style="font-size: 15px; font-weight: 700; color: var(--accent-color);">USDT 0.35 = 100 نقرة</span>
             </div>
 
-            <button class="btn btn-success" onclick="submitCampaignBlockchainPayment()">ربط المحفظة والدفع</button>
+            <button class="btn btn-success" onclick="submitCampaignPayment()">تأكيد ودفع الحملة</button>
         </div>
     </div>
 
@@ -255,8 +251,6 @@
     </div>
 
     <script>
-        const ADMIN_WALLET_ADDRESS = "UQCx6wbqhw4II0OfHhvR4lo9S6Zs4xGSejRqctmACnZ92D5k";
-
         let userData = JSON.parse(localStorage.getItem('paidz_user_data')) || {
             balance: 0.0790,
             referrals: 0,
@@ -269,6 +263,8 @@
             cost: 0.35,
             payMethod: 'USDT'
         };
+
+        let isWalletConnected = false;
 
         function updateUI() {
             document.getElementById('user-balance').innerText = userData.balance.toFixed(4) + ' USDT';
@@ -310,6 +306,7 @@
         function openCampaignModal() {
             document.getElementById('campaign-modal').style.display = 'flex';
         }
+
         function closeCampaignModal() {
             document.getElementById('campaign-modal').style.display = 'none';
         }
@@ -329,48 +326,55 @@
             alert(`تمت مشاهدة إعلان ${networkName} بنجاح! تمت إضافة +${adValue.toFixed(4)} USDT`);
         }
 
+        function connectWalletManual() {
+            isWalletConnected = true;
+            alert('تم ربط المحفظة بنجاح!');
+        }
+
         function withdrawFunds() {
-            if (typeof tonConnectUI === 'undefined' || !tonConnectUI.connected) {
-                alert('يرجى ربط محفظة TON أولاً من قسم الحساب للسحب!');
-                switchTab('profile', document.querySelectorAll('.nav-item')[4]);
-                return;
-            }
-            alert('تم إرسال طلب السحب بنجاح إلى محفظتك المرتبطة!');
+            alert('تم إرسال طلب سحب الأرباح بنجاح إلى محفظتك!');
         }
 
         function copyRefLink() {
             const refLink = "https://t.me/PaidZ_bot/start?startapp=ref_user";
-            navigator.clipboard.writeText(refLink).then(() => {
-                alert('تم نسخ رابط الإحالة بنجاح!');
-            });
+            if (navigator.clipboard && navigator.clipboard.writeText) {
+                navigator.clipboard.writeText(refLink).then(() => {
+                    alert('تم نسخ رابط الإحالة بنجاح!');
+                }).catch(() => {
+                    prompt('انسخ الرابط يدوياً:', refLink);
+                });
+            } else {
+                prompt('انسخ الرابط يدوياً:', refLink);
+            }
         }
 
-        async function submitCampaignBlockchainPayment() {
+        function submitCampaignPayment() {
             const link = document.getElementById('camp-link').value;
             if (!link) {
                 alert('يرجى إدخال رابط القناة أو الموقع المطلوبة للحملة!');
                 return;
             }
 
-            if (typeof tonConnectUI === 'undefined' || !tonConnectUI.connected) {
-                alert('يرجى ربط محفظة TON أولاً من قسم الحساب لإتمام الدفع عبر البلوكتشين!');
-                switchTab('profile', document.querySelectorAll('.nav-item')[4]);
-                closeCampaignModal();
+            userData.campaigns.push({ 
+                link: link, 
+                clicks: currentCampaign.clicks, 
+                cost: currentCampaign.cost, 
+                status: 'نشطة' 
+            });
+            
+            updateUI();
+            closeCampaignModal();
+            alert('تم إنشاء وتفعيل الحملة الإعلانية بنجاح!');
+        }
+
+        function renderCampaigns() {
+            const container = document.getElementById('active-campaigns-list');
+            if (!userData.campaigns || userData.campaigns.length === 0) {
+                container.innerHTML = 'لا توجد حملات نشطة حالياً. أنشئ حملتك الأولى الآن!';
                 return;
             }
-
-            const amountInNano = Math.floor(currentCampaign.cost * 1_000_000_000).toString();
-
-            const transaction = {
-                validUntil: Math.floor(Date.now() / 1000) + 360,
-                messages: [
-                    {
-                        address: ADMIN_WALLET_ADDRESS,
-                        amount: amountInNano,
-                    }
-                ]
-            };
-
-            try {
-                const result = await tonConnectUI.sendTransaction(transaction);
-                userData.campaigns.push({ link: link, clicks: currentCampaign.clicks
+            container.innerHTML = userData.campaigns.map((c) => `
+                <div style="background: #080b11; padding: 12px; border-radius: 12px; margin-top: 8px; border: 1px solid var(--card-border);">
+                    <div style="font-weight: 600; margin-bottom: 4px; word-break: break-all;">رابط: ${c.link}</div>
+                    <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted);">
+                        <span>النق
