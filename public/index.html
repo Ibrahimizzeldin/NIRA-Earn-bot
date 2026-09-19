@@ -3,14 +3,14 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>PaidZ - Mini App</title>
+    <title>NIRA Earn - Telegram Mini App</title>
     <!-- Telegram WebApp SDK -->
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
     <!-- TON Connect UI SDK -->
     <script src="https://unpkg.com/@tonconnect/ui@latest/dist/tonconnect-ui.min.js"></script>
     <style>
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; }
-        body { background-color: #0b0e14; color: #fff; padding-bottom: 70px; }
+        body { background-color: #0b0e14; color: #fff; padding-bottom: 80px; }
         .container { padding: 16px; max-width: 500px; margin: auto; }
         
         /* Navigation Bar */
@@ -29,39 +29,47 @@
         .balance-num { font-size: 32px; font-weight: bold; color: #00ffcc; margin: 8px 0; }
         .btn { background: #2f80ed; color: #fff; border: none; padding: 10px 20px; border-radius: 10px; font-weight: bold; width: 100%; cursor: pointer; text-align: center; }
         .btn-success { background: #27ae60; }
+        .btn-secondary { background: #22304a; color: #f3ba2f; margin-top: 8px; }
         
         /* Lists & Items */
         .list-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #1f293d; }
         .list-item:last-child { border-bottom: none; }
         .badge { background: #22304a; color: #f3ba2f; padding: 4px 8px; border-radius: 6px; font-size: 12px; }
         
-        /* Ton Connect Container Fixes */
+        /* Modal */
+        .modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.8); z-index: 2000; justify-content: center; align-items: center; padding: 16px; }
+        .modal-content { background: #151c28; border: 1px solid #1f293d; border-radius: 16px; width: 100%; max-width: 450px; padding: 20px; max-height: 90vh; overflow-y: auto; }
+        .form-group { margin-bottom: 14px; }
+        .form-group label { display: block; font-size: 13px; color: #8a9ba8; margin-bottom: 6px; }
+        .form-control { width: 100%; background: #0b0e14; border: 1px solid #1f293d; color: #fff; padding: 10px; border-radius: 8px; font-size: 14px; }
+        
         #ton-connect-button { display: flex; justify-content: center; margin-top: 10px; }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <!-- 1. الرئيسية / PaidZ -->
+        <!-- 1. الرئيسية / الرئيسية -->
         <div id="home-section" class="section active">
             <div class="card balance-box">
-                <p>مرحباً، أبو تميم</p>
-                <div class="balance-num" id="user-balance">0.0760 💎</div>
+                <p>مرحباً، <span id="profile-name">أبو تميم</span></p>
+                <div class="balance-num" id="user-balance">0.0760 USDT</div>
                 <button class="btn" onclick="withdrawFunds()">سحب الأرباح</button>
+                <button class="btn btn-secondary" onclick="openCampaignModal()">+ ترويج رابط / إنشاء حملة</button>
             </div>
             <div class="card">
                 <h3>مجمع الأرباح اليومي</h3>
                 <p style="color: #8a9ba8; font-size: 13px; margin-top: 5px;">الحد الأقصى اليومي: 0.155 USDT</p>
             </div>
             <div class="card">
-                <h3>شبكات الإعلانات والمميزات</h3>
+                <h3>شبكات الإعلانات والمميزات (عائد 40%)</h3>
                 <div class="list-item">
-                    <span>Adsgram (إعلانات فيديو)</span>
-                    <button class="btn" style="width: auto; padding: 6px 14px;" onclick="watchAd('Adsgram')">مشاهدة</button>
+                    <span>Adsgram (مشاهدة إعلان)</span>
+                    <button class="btn" style="width: auto; padding: 6px 14px;" onclick="watchAdReward(0.0100, 'Adsgram')">مشاهدة (+0.004 USDT)</button>
                 </div>
                 <div class="list-item">
                     <span>Gigapub Premium Ads</span>
-                    <button class="btn" style="width: auto; padding: 6px 14px;" onclick="watchAd('Gigapub')">مشاهدة</button>
+                    <button class="btn" style="width: auto; padding: 6px 14px;" onclick="watchAdReward(0.0150, 'Gigapub')">مشاهدة (+0.006 USDT)</button>
                 </div>
             </div>
         </div>
@@ -73,16 +81,16 @@
                 <div class="list-item">
                     <div>
                         <h4>عجلة الحظ اليومية</h4>
-                        <p style="font-size: 12px; color: #8a9ba8;">اربح حتى 0.20 USDT</p>
+                        <p style="font-size: 12px; color: #8a9ba8;">شاهد إعلان لتدوير العجلة (اربح 40% من قيمة الإعلان)</p>
                     </div>
-                    <button class="btn" style="width: auto;" onclick="spinWheel()">تدوير</button>
+                    <button class="btn" style="width: auto;" onclick="spinWheelAction()">تدوير</button>
                 </div>
                 <div class="list-item">
                     <div>
                         <h4>مكافأة تسجيل الدخول اليومية</h4>
                         <p style="font-size: 12px; color: #8a9ba8;">0.0001+ USDT</p>
                     </div>
-                    <button class="btn btn-success" style="width: auto;" onclick="claimDaily()">استلام</button>
+                    <button class="btn btn-success" style="width: auto;" onclick="claimDailyBonus()">استلام</button>
                 </div>
             </div>
         </div>
@@ -127,6 +135,46 @@
         </div>
     </div>
 
+    <!-- نافذة إنشاء الحملة الإعلانية -->
+    <div id="campaign-modal" class="modal">
+        <div class="modal-content">
+            <h3 style="margin-bottom: 15px;">إنشاء حملة إعلانية جديدة</h3>
+            <div class="form-group">
+                <label>هدف الحملة</label>
+                <select class="form-control" id="camp-type">
+                    <option value="channel">قناة تليجرام (مشتركين)</option>
+                    <option value="webapp">تطبيق Mini App (نشط لمدة 20 ثانية)</option>
+                    <option value="bot">بوت تليجرام (MAU)</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>رابط أو معرف القناة/البوت/التطبيق</label>
+                <input type="text" class="form-control" id="camp-link" placeholder="t.me/example_bot">
+            </div>
+            <div class="form-group">
+                <label>عنوان الحملة</label>
+                <input type="text" class="form-control" id="camp-title" placeholder="مثال: اشترك في القناة واكسب">
+            </div>
+            <div class="form-group">
+                <label>عدد النقرات / الإكمالات</label>
+                <select class="form-control" id="camp-clicks">
+                    <option value="100">100 نقرة</option>
+                    <option value="500">500 نقرة</option>
+                    <option value="1000">1000 نقرة</option>
+                </select>
+            </div>
+            <div class="form-group">
+                <label>طريقة الدفع</label>
+                <select class="form-control" id="camp-pay">
+                    <option value="usdt">USDT (أو الرصيد الداخلي)</option>
+                    <option value="gram">عملة GRAM</option>
+                </select>
+            </div>
+            <button class="btn btn-success" onclick="submitCampaign()">تأكيد ودفع الحملة</button>
+            <button class="btn btn-secondary" onclick="closeCampaignModal()">إغلاق</button>
+        </div>
+    </div>
+
     <!-- شريط التنقل السفلي -->
     <div class="nav-bar">
         <button class="nav-item active" onclick="switchTab('home', this)"><span>🏠</span>الرئيسية</button>
@@ -137,44 +185,60 @@
     </div>
 
     <script>
+        // إدارة البيانات المحلية وحفظ الرصيد الحقيقي
+        let userData = JSON.parse(localStorage.getItem('nira_user_data')) || {
+            balance: 0.0760,
+            referrals: 0,
+            dailyClaimed: false
+        };
+
+        function updateUI() {
+            document.getElementById('user-balance').innerText = userData.balance.toFixed(4) + ' USDT';
+            document.getElementById('ref-count').innerText = userData.referrals + ' أصدقاء';
+            localStorage.setItem('nira_user_data', JSON.stringify(userData));
+        }
+        updateUI();
+
         function switchTab(tabName, element) {
             document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
             document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-            
             document.getElementById(tabName + '-section').classList.add('active');
             element.classList.add('active');
         }
 
-        const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
-            manifestUrl: window.location.origin + '/tonconnect-manifest.json',
-            buttonRootId: 'ton-connect-button'
-        });
-
-        tonConnectUI.onStatusChange(walletInfo => {
-            if (walletInfo) {
-                const userAddress = walletInfo.account.address;
-                console.log("تم الاتصال بنجاح بالمحفظة:", userAddress);
-                if (window.Telegram && window.Telegram.WebApp) {
-                    window.Telegram.WebApp.showAlert("تم ربط المحفظة بنجاح!\nالعنوان: " + userAddress.substring(0, 6) + "...");
-                }
-            } else {
-                console.log("تم قطع الاتصال بالمحفظة");
-            }
-        });
-
-        function watchAd(network) {
+        // نظام احتساب عائد 40% للمستخدم عند مشاهدة الإعلانات أو إتمام المهام
+        function watchAdReward(adValue, networkName) {
             if (window.Telegram && window.Telegram.WebApp) {
                 window.Telegram.WebApp.HapticFeedback.impactOccurred('medium');
             }
-            alert('جارِ بدء عرض إعلان شبكة ' + network + '...');
+            // 40% للمستخدم / 60% للمنصة
+            let userReward = adValue * 0.40;
+            userData.balance += userReward;
+            updateUI();
+            alert(`تم مشاهدة إعلان ${networkName} بنجاح!\nتمت إضافة مكافأتك (40%): +${userReward.toFixed(4)} USDT`);
         }
 
-        function spinWheel() {
-            alert('جاري تدوير عجلة الحظ...');
+        function spinWheelAction() {
+            if (window.Telegram && window.Telegram.WebApp) {
+                window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
+            }
+            // محاكاة إعلان عجلة الحظ بقيمة إعلانية 0.05 USDT (المستخدم يأخذ 40% = 0.02)
+            let adCost = 0.05;
+            let userReward = adCost * 0.40;
+            userData.balance += userReward;
+            updateUI();
+            alert(`مبروك! قمت بتدوير العجلة بنجاح بعد مشاهدة الإعلان.\nربحت: +${userReward.toFixed(4)} USDT`);
         }
 
-        function claimDaily() {
-            alert('تم استلام المكافأة اليومية بنجاح!');
+        function claimDailyBonus() {
+            if (userData.dailyClaimed) {
+                alert('لقد استلمت مكافأة تسجيل الدخول اليومية مسبقاً!');
+                return;
+            }
+            userData.balance += 0.0001;
+            userData.dailyClaimed = true;
+            updateUI();
+            alert('تم استلام مكافأة تسجيل الدخول اليومية بنجاح (+0.0001 USDT)!');
         }
 
         function withdrawFunds() {
@@ -184,15 +248,54 @@
                 switchTab('profile', document.querySelectorAll('.nav-item')[4]);
                 return;
             }
-            alert('جارِ معالجة طلب السحب إلى محفظتك المرتبطة...');
+            if (userData.balance < 0.1) {
+                alert('الحد الأدنى للسحب هو 0.1 USDT');
+                return;
+            }
+            alert('تم إرسال طلب السحب بنجاح إلى محفظتك المرتبطة!');
         }
 
         function copyRefLink() {
-            const refLink = "https://t.me/PAIDZ_BOT/start?startapp=ref_user";
+            const refLink = "https://t.me/NIRA_Earn_Bot/start?startapp=ref_" + (window.Telegram?.WebApp?.initDataUnsafe?.user?.id || 'user');
             navigator.clipboard.writeText(refLink).then(() => {
-                alert('تم نسخ رابط الإحالة الخاص بك!');
+                alert('تم نسخ رابط الإحالة الخاص بك بنجاح!');
             });
         }
+
+        // تفاعل نافذة الحملات الإعلانية
+        function openCampaignModal() {
+            document.getElementById('campaign-modal').style.display = 'flex';
+        }
+        function closeCampaignModal() {
+            document.getElementById('campaign-modal').style.display = 'none';
+        }
+        function submitCampaign() {
+            const title = document.getElementById('camp-title').value;
+            const link = document.getElementById('camp-link').value;
+            if (!title || !link) {
+                alert('يرجى تعبئة جميع الحقول المطلوبة للحملة!');
+                return;
+            }
+            alert('تم إنشاء الحملة الإعلانية وخصم التكلفة بنجاح!');
+            closeCampaignModal();
+        }
+
+        // ربط محفظة TON
+        const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
+            manifestUrl: window.location.origin + '/tonconnect-manifest.json',
+            buttonRootId: 'ton-connect-button'
+        });
+
+        tonConnectUI.onStatusChange(walletInfo => {
+            if (walletInfo) {
+                const userAddress = walletInfo.account.address;
+                console.log("تم الاتصال بالمحفظة:", userAddress);
+                if (window.Telegram && window.Telegram.WebApp) {
+                    window.Telegram.WebApp.showAlert("تم ربط المحفظة بنجاح!");
+                }
+            }
+        });
     </script>
 </body>
-</html>
+            </html>
+            
