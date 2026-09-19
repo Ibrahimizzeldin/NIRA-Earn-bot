@@ -58,10 +58,14 @@
                 <button class="btn" onclick="withdrawFunds()">سحب الأرباح</button>
                 <button class="btn btn-secondary" onclick="openCampaignModal()">+ ترويج رابط / إنشاء حملة</button>
             </div>
+            
             <div class="card">
-                <h3>مجمع الأرباح اليومي</h3>
-                <p style="color: #8a9ba8; font-size: 13px; margin-top: 5px;">الحد الأقصى اليومي: 0.155 USDT</p>
+                <h3>إدارة الحملات النشطة (Paidz Style)</h3>
+                <div id="active-campaigns-list" style="margin-top: 10px; font-size: 13px; color: #8a9ba8;">
+                    لا توجد حملات نشطة حالياً. أنشئ حملتك الأولى الآن!
+                </div>
             </div>
+
             <div class="card">
                 <h3>شبكات الإعلانات والمميزات</h3>
                 <div class="list-item">
@@ -115,7 +119,7 @@
         <div id="referrals-section" class="section">
             <h2>دعوة الأصدقاء</h2>
             <div class="card" style="margin-top: 15px;">
-                <p>نظام الإحالة ذو المستوى الإضافي (L1: 10% - L2: 4%)</p>
+                <p>نظام الإحالة الذكي (L1: 10% - L2: 4% مجزية)</p>
                 <div class="balance-num" style="font-size: 20px;" id="ref-count">0 أصدقاء</div>
                 <button class="btn" style="margin-top: 10px;" onclick="copyRefLink()">نسخ رابط الإحالة</button>
             </div>
@@ -140,7 +144,7 @@
                     <span class="badge">برونزي - أساسي</span>
                 </div>
                 <div style="padding: 15px 0;">
-                    <p style="margin-bottom: 10px; font-size: 14px; color: #8a9ba8;">ربط محفظة TON الحقيقي:</p>
+                    <p style="margin-bottom: 10px; font-size: 14px; color: #8a9ba8;">ربط محفظة TON (متوافق مع Gram & Tonkeeper):</p>
                     <div id="ton-connect-button"></div>
                 </div>
                 <div class="list-item">
@@ -174,22 +178,14 @@
             <div class="form-group">
                 <label>عدد النقرات والتكلفة الإجمالية</label>
                 <select class="form-control" id="camp-clicks">
-                    <option value="100">100 نقرة - التكلفة: 0.30 USDT</option>
-                    <option value="200">200 نقرة - التكلفة: 0.55 USDT</option>
-                    <option value="300">300 نقرة - التكلفة: 0.80 USDT</option>
-                    <option value="500">500 نقرة - التكلفة: 1.25 USDT</option>
-                    <option value="1000">1000 نقرة - التكلفة: 2.40 USDT</option>
+                    <option value="100" data-cost="0.30">100 نقرة - التكلفة: 0.30 USDT</option>
+                    <option value="200" data-cost="0.55">200 نقرة - التكلفة: 0.55 USDT</option>
+                    <option value="300" data-cost="0.80">300 نقرة - التكلفة: 0.80 USDT</option>
+                    <option value="500" data-cost="1.25">500 نقرة - التكلفة: 1.25 USDT</option>
                 </select>
             </div>
-            <div class="form-group">
-                <label>طريقة الدفع (بدون نجوم تليجرام)</label>
-                <select class="form-control" id="camp-pay">
-                    <option value="usdt">USDT (أو الرصيد الداخلي)</option>
-                    <option value="gram">عملة GRAM</option>
-                </select>
-            </div>
-            <button class="btn btn-success" onclick="submitCampaign()">تأكيد ودفع الحملة</button>
-            <button class="btn btn-secondary" onclick="closeCampaignModal()">إغلاق</button>
+            <button class="btn btn-success" onclick="submitCampaign()">تأكيد ودفع الحملة من الرصيد</button>
+            <button class="btn btn-secondary" onclick="closeCampaignModal()" style="margin-top: 8px;">إغلاق</button>
         </div>
     </div>
 
@@ -207,7 +203,8 @@
             balance: 0.0760,
             referrals: 0,
             dailyClaimed: false,
-            channelTaskCompleted: false
+            channelTaskCompleted: false,
+            campaigns: []
         };
 
         function updateUI() {
@@ -221,6 +218,7 @@
                 btn.disabled = true;
             }
 
+            renderCampaigns();
             localStorage.setItem('nira_user_data', JSON.stringify(userData));
         }
         updateUI();
@@ -232,12 +230,8 @@
             element.classList.add('active');
         }
 
-        // إنجاز مهمة الاشتراك في القناة الرسمية
         function completeChannelTask() {
-            if (userData.channelTaskCompleted) {
-                alert('لقد أكملت هذه المهمة مسبقاً!');
-                return;
-            }
+            if (userData.channelTaskCompleted) return;
             if (window.Telegram && window.Telegram.WebApp) {
                 window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
             }
@@ -261,27 +255,25 @@
             if (window.Telegram && window.Telegram.WebApp) {
                 window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
             }
-            let adCost = 0.05;
-            let userReward = adCost * 0.40;
+            let userReward = 0.02;
             userData.balance += userReward;
             updateUI();
-            alert(`مبروك! قمت بتدوير العجلة بنجاح بعد مشاهدة الإعلان.\nربحت: +${userReward.toFixed(4)} USDT`);
+            alert(`مبروك! ربحت من عجلة الحظ: +${userReward.toFixed(4)} USDT`);
         }
 
         function claimDailyBonus() {
             if (userData.dailyClaimed) {
-                alert('لقد استلمت مكافأة تسجيل الدخول اليومية مسبقاً!');
+                alert('لقد استلمت المكافأة اليومية مسبقاً!');
                 return;
             }
             userData.balance += 0.0001;
             userData.dailyClaimed = true;
             updateUI();
-            alert('تم استلام مكافأة تسجيل الدخول اليومية بنجاح (+0.0001 USDT)!');
+            alert('تم استلام مكافأة تسجيل الدخول اليومية (+0.0001 USDT)!');
         }
 
         function withdrawFunds() {
-            const connectedWallet = tonConnectUI.wallet;
-            if (!connectedWallet) {
+            if (!tonConnectUI.wallet) {
                 alert('يرجى ربط محفظة TON أولاً من قسم الحساب للسحب!');
                 switchTab('profile', document.querySelectorAll('.nav-item')[4]);
                 return;
@@ -306,15 +298,43 @@
         function closeCampaignModal() {
             document.getElementById('campaign-modal').style.display = 'none';
         }
+
         function submitCampaign() {
             const title = document.getElementById('camp-title').value;
             const link = document.getElementById('camp-link').value;
+            const clicksSelect = document.getElementById('camp-clicks');
+            const clicks = clicksSelect.value;
+            const cost = parseFloat(clicksSelect.options[clicksSelect.selectedIndex].getAttribute('data-cost'));
+
             if (!title || !link) {
                 alert('يرجى تعبئة جميع الحقول المطلوبة للحملة!');
                 return;
             }
-            alert('تم إنشاء الحملة الإعلانية وخصم التكلفة بنجاح!');
+
+            if (userData.balance < cost) {
+                alert('رصيدك غير كافي لإنشاء هذه الحملة! يجدر بك جمع المزيد من الأرباح.');
+                return;
+            }
+
+            userData.balance -= cost;
+            userData.campaigns.push({ title, link, clicks, cost, status: 'نشطة' });
+            updateUI();
             closeCampaignModal();
+            alert('تم إنشاء الحملة الإعلانية بنجاح وخصم التكلفة من رصيدك!');
+        }
+
+        function renderCampaigns() {
+            const container = document.getElementById('active-campaigns-list');
+            if (!userData.campaigns || userData.campaigns.length === 0) {
+                container.innerHTML = 'لا توجد حملات نشطة حالياً. أنشئ حملتك الأولى الآن!';
+                return;
+            }
+            container.innerHTML = userData.campaigns.map((c, i) => `
+                <div style="background: #0b0e14; padding: 10px; border-radius: 8px; margin-top: 6px; border: 1px solid #1f293d;">
+                    <strong>${c.title}</strong> (${c.clicks} نقرة)<br>
+                    <span style="color: #27ae60;">الحالة: ${c.status}</span>
+                </div>
+            `).join('');
         }
 
         const tonConnectUI = new TON_CONNECT_UI.TonConnectUI({
@@ -324,14 +344,13 @@
 
         tonConnectUI.onStatusChange(walletInfo => {
             if (walletInfo) {
-                const userAddress = walletInfo.account.address;
-                console.log("تم الاتصال بالمحفظة:", userAddress);
+                console.log("تم الاتصال بالمحفظة بنجاح");
                 if (window.Telegram && window.Telegram.WebApp) {
-                    window.Telegram.WebApp.showAlert("تم ربط المحفظة بنجاح!");
+                    window.Telegram.WebApp.showAlert("تم ربط المحفظة بنجاح دون أخطاء!");
                 }
             }
         });
     </script>
 </body>
-                    </html>
-                    
+    </html>
+    
