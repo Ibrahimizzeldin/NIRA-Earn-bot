@@ -30,6 +30,7 @@
         .btn { background: #2f80ed; color: #fff; border: none; padding: 10px 20px; border-radius: 10px; font-weight: bold; width: 100%; cursor: pointer; text-align: center; }
         .btn-success { background: #27ae60; }
         .btn-secondary { background: #22304a; color: #f3ba2f; margin-top: 8px; }
+        .btn-completed { background: #1f293d; color: #8a9ba8; cursor: not-allowed; }
         
         /* Lists & Items */
         .list-item { display: flex; justify-content: space-between; align-items: center; padding: 12px 0; border-bottom: 1px solid #1f293d; }
@@ -76,8 +77,23 @@
 
         <!-- 2. المهام / Tasks -->
         <div id="tasks-section" class="section">
-            <h2>المهام اليومية والخاصة</h2>
-            <div class="card" style="margin-top: 15px;">
+            <h2>المهام الإلزامية واليومية</h2>
+            
+            <!-- المهمة الأولى: الاشتراك في القناة الرسمية -->
+            <div class="card" style="margin-top: 15px; border: 1px solid #2f80ed;">
+                <div style="margin-bottom: 10px;">
+                    <span class="badge" style="background: #2f80ed; color: #fff;">المهمة الأساسية الأولى ⭐</span>
+                    <h4 style="margin-top: 6px;">انضم إلى قناة البوت الرسمية</h4>
+                    <p style="font-size: 12px; color: #8a9ba8; margin-top: 3px;">اشترك في القناة لتتابع آخر التحديثات واربح مكافأة فورية (+0.0100 USDT)</p>
+                </div>
+                <div style="display: flex; gap: 8px; margin-top: 12px;">
+                    <a href="https://t.me/NiraEarnOfficial" target="_blank" class="btn btn-secondary" style="text-decoration: none; flex: 1; text-align: center; padding: 8px;">اشتراك في القناة</a>
+                    <button id="channel-task-btn" class="btn btn-success" style="flex: 1; padding: 8px;" onclick="completeChannelTask()">تحقق واستلام المكافأة</button>
+                </div>
+            </div>
+
+            <!-- المهام الأخرى -->
+            <div class="card">
                 <div class="list-item">
                     <div>
                         <h4>عجلة الحظ اليومية</h4>
@@ -190,12 +206,21 @@
         let userData = JSON.parse(localStorage.getItem('nira_user_data')) || {
             balance: 0.0760,
             referrals: 0,
-            dailyClaimed: false
+            dailyClaimed: false,
+            channelTaskCompleted: false
         };
 
         function updateUI() {
             document.getElementById('user-balance').innerText = userData.balance.toFixed(4) + ' USDT';
             document.getElementById('ref-count').innerText = userData.referrals + ' أصدقاء';
+            
+            if (userData.channelTaskCompleted) {
+                const btn = document.getElementById('channel-task-btn');
+                btn.innerText = "تم الإنجاز ✓";
+                btn.className = "btn btn-completed";
+                btn.disabled = true;
+            }
+
             localStorage.setItem('nira_user_data', JSON.stringify(userData));
         }
         updateUI();
@@ -205,6 +230,21 @@
             document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
             document.getElementById(tabName + '-section').classList.add('active');
             element.classList.add('active');
+        }
+
+        // إنجاز مهمة الاشتراك في القناة الرسمية
+        function completeChannelTask() {
+            if (userData.channelTaskCompleted) {
+                alert('لقد أكملت هذه المهمة مسبقاً!');
+                return;
+            }
+            if (window.Telegram && window.Telegram.WebApp) {
+                window.Telegram.WebApp.HapticFeedback.notificationOccurred('success');
+            }
+            userData.balance += 0.0100;
+            userData.channelTaskCompleted = true;
+            updateUI();
+            alert('مبروك! تم التحقق من اشتراكك في القناة بنجاح.\nتمت إضافة +0.0100 USDT إلى رصيدك.');
         }
 
         function watchAdReward(adValue, networkName) {
@@ -293,5 +333,5 @@
         });
     </script>
 </body>
-    </html>
-    
+                    </html>
+                    
