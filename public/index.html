@@ -23,18 +23,18 @@
         }
 
         * { box-sizing: border-box; margin: 0; padding: 0; font-family: 'Segoe UI', system-ui, -apple-system, sans-serif; -webkit-tap-highlight-color: transparent; }
-        body { background-color: var(--bg-color); color: var(--text-main); padding-bottom: 100px; overflow-x: hidden; }
+        body { background-color: var(--bg-color); color: var(--text-main); padding-bottom: 110px; overflow-x: hidden; }
         
-        .container { padding: 16px; max-width: 480px; margin: auto; position: relative; z-index: 1; }
+        .container { padding: 16px; max-width: 480px; margin: auto; position: relative; }
 
         /* Navigation Bar */
         .nav-bar { 
             position: fixed; bottom: 0; left: 0; right: 0; 
             background: rgba(13, 17, 23, 0.98); backdrop-filter: blur(12px);
             display: flex; justify-content: space-around; padding: 10px 0 16px 0; 
-            border-top: 1px solid var(--card-border); z-index: 9999; 
+            border-top: 1px solid var(--card-border); z-index: 99999; 
         }
-        .nav-item { background: none; border: none; color: var(--text-muted); font-size: 11px; display: flex; flex-direction: column; align-items: center; cursor: pointer; transition: all 0.2s ease; width: 20%; pointer-events: auto; }
+        .nav-item { background: none; border: none; color: var(--text-muted); font-size: 11px; display: flex; flex-direction: column; align-items: center; cursor: pointer; transition: all 0.2s ease; width: 20%; }
         .nav-item span { font-size: 20px; margin-bottom: 4px; }
         .nav-item.active { color: var(--accent-color); font-weight: 600; }
 
@@ -55,12 +55,12 @@
             background: var(--btn-primary); color: #fff; border: none; padding: 12px 20px; 
             border-radius: 12px; font-weight: 600; width: 100%; cursor: pointer; text-align: center; 
             font-size: 14px; transition: background 0.2s, transform 0.1s; box-shadow: 0 4px 12px rgba(37,99,235,0.3);
-            position: relative; z-index: 10; pointer-events: auto;
+            margin-top: 8px;
         }
         .btn:active { transform: scale(0.98); }
         .btn:hover { background: var(--btn-hover); }
         .btn-success { background: var(--success-color); box-shadow: 0 4px 12px rgba(16,185,129,0.3); }
-        .btn-secondary { background: #1e293b; color: #f3ba2f; margin-top: 10px; box-shadow: none; border: 1px solid #334155; }
+        .btn-secondary { background: #1e293b; color: #f3ba2f; box-shadow: none; border: 1px solid #334155; }
         .btn-completed { background: #1e293b; color: var(--text-muted); cursor: not-allowed; box-shadow: none; }
         
         /* Lists & Items */
@@ -69,7 +69,7 @@
         .badge { background: #1e293b; color: #f3ba2f; padding: 5px 10px; border-radius: 8px; font-size: 12px; font-weight: 600; border: 1px solid #334155; }
         
         /* Modal Overlay */
-        .modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(5px); z-index: 10000; justify-content: center; align-items: flex-end; }
+        .modal { display: none; position: fixed; top: 0; left: 0; right: 0; bottom: 0; background: rgba(0,0,0,0.85); backdrop-filter: blur(5px); z-index: 100000; justify-content: center; align-items: flex-end; }
         .modal-content { 
             background: #111722; border: 1px solid var(--card-border); border-radius: 24px 24px 0 0; 
             width: 100%; max-width: 480px; padding: 24px; max-height: 85vh; overflow-y: auto; 
@@ -81,11 +81,11 @@
         .form-control:focus { border-color: var(--accent-color); }
         
         .clicks-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-bottom: 12px; }
-        .click-btn { background: #080b11; border: 1px solid var(--card-border); color: var(--text-muted); padding: 10px; border-radius: 10px; text-align: center; cursor: pointer; font-weight: 600; font-size: 13px; pointer-events: auto; }
+        .click-btn { background: #080b11; border: 1px solid var(--card-border); color: var(--text-muted); padding: 10px; border-radius: 10px; text-align: center; cursor: pointer; font-weight: 600; font-size: 13px; }
         .click-btn.active { background: rgba(0,255,204,0.1); border-color: var(--accent-color); color: var(--accent-color); }
 
         .pay-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-bottom: 12px; }
-        .pay-btn { background: #080b11; border: 1px solid var(--card-border); color: var(--text-main); padding: 10px; border-radius: 10px; text-align: center; cursor: pointer; font-size: 13px; font-weight: 500; pointer-events: auto; }
+        .pay-btn { background: #080b11; border: 1px solid var(--card-border); color: var(--text-main); padding: 10px; border-radius: 10px; text-align: center; cursor: pointer; font-size: 13px; font-weight: 500; }
         .pay-btn.active { border-color: var(--btn-primary); background: rgba(37,99,235,0.15); color: #60a5fa; }
 
         #ton-connect-button { display: flex; justify-content: center; margin-top: 12px; }
@@ -118,14 +118,14 @@
                         <strong>إعلانات الفيديو (Adsgram)</strong>
                         <p style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">مشاهدة إعلان مكافأة فورية</p>
                     </div>
-                    <button class="btn" style="width: auto; padding: 8px 14px; font-size: 12px;" onclick="watchAdReward(0.0005, 'Adsgram')">مشاهدة (+0.0005)</button>
+                    <button class="btn" style="width: auto; padding: 8px 14px; font-size: 12px; margin-top: 0;" onclick="watchAdReward(0.0005, 'Adsgram')">مشاهدة (+0.0005)</button>
                 </div>
                 <div class="list-item">
                     <div>
                         <strong>إعلانات Gigapub</strong>
                         <p style="font-size: 11px; color: var(--text-muted); margin-top: 2px;">تفاعل ترويجي مصغر</p>
                     </div>
-                    <button class="btn" style="width: auto; padding: 8px 14px; font-size: 12px;" onclick="watchAdReward(0.0003, 'Gigapub')">مشاهدة (+0.0003)</button>
+                    <button class="btn" style="width: auto; padding: 8px 14px; font-size: 12px; margin-top: 0;" onclick="watchAdReward(0.0003, 'Gigapub')">مشاهدة (+0.0003)</button>
                 </div>
             </div>
         </div>
@@ -140,7 +140,7 @@
                         <h4 style="margin-top: 6px; font-size: 15px;">اشتراك في قناة تليجرام</h4>
                         <p style="font-size: 11px; color: var(--text-muted);">مكافأة: +0.0010 USDT</p>
                     </div>
-                    <button class="btn btn-success" style="width: auto; padding: 8px 14px; font-size: 12px;" onclick="completeTaskItem(this, 0.0010, 'قناة تليجرام')">تحقق واكسب</button>
+                    <button class="btn btn-success" style="width: auto; padding: 8px 14px; font-size: 12px; margin-top: 0;" onclick="completeTaskItem(this, 0.0010, 'قناة تليجرام')">تحقق واكسب</button>
                 </div>
                 <div class="list-item">
                     <div>
@@ -148,7 +148,7 @@
                         <h4 style="margin-top: 6px; font-size: 15px;">تفاعل مع بوت Mini App</h4>
                         <p style="font-size: 11px; color: var(--text-muted);">مكافأة: +0.0010 USDT</p>
                     </div>
-                    <button class="btn btn-success" style="width: auto; padding: 8px 14px; font-size: 12px;" onclick="completeTaskItem(this, 0.0010, 'بوت Mini App')">تحقق واكسب</button>
+                    <button class="btn btn-success" style="width: auto; padding: 8px 14px; font-size: 12px; margin-top: 0;" onclick="completeTaskItem(this, 0.0010, 'بوت Mini App')">تحقق واكسب</button>
                 </div>
             </div>
         </div>
@@ -237,7 +237,7 @@
                 </div>
             </div>
 
-            <div class="card" style="background: #080b11; padding: 12px; text-align: center; margin-bottom: 16px;">
+            <div class="card" style="background: #080b11; padding: 12px; text-align: center; margin-bottom: 16px; margin-top: 0;">
                 <span id="cost-display" style="font-size: 15px; font-weight: 700; color: var(--accent-color);">USDT 0.35 = 100 نقرة</span>
             </div>
 
@@ -287,7 +287,7 @@
         }
 
         function selectClicks(clicks, cost, element) {
-            document.querySelectorAll('.clicks-grid .click-btn').forEach(b => b.classList.remove('active'));
+            element.parentElement.querySelectorAll('.click-btn').forEach(b => b.classList.remove('active'));
             element.classList.add('active');
             currentCampaign.clicks = clicks;
             currentCampaign.cost = cost;
@@ -295,7 +295,7 @@
         }
 
         function setPayMethod(method, element) {
-            document.querySelectorAll('.pay-grid .pay-btn').forEach(b => b.classList.remove('active'));
+            element.parentElement.querySelectorAll('.pay-btn').forEach(b => b.classList.remove('active'));
             element.classList.add('active');
             currentCampaign.payMethod = method;
             document.getElementById('cost-display').innerText = `${method} ${currentCampaign.cost} = ${currentCampaign.clicks} نقرة`;
@@ -330,7 +330,7 @@
         }
 
         function withdrawFunds() {
-            if (!tonConnectUI.connected) {
+            if (typeof tonConnectUI === 'undefined' || !tonConnectUI.connected) {
                 alert('يرجى ربط محفظة TON أولاً من قسم الحساب للسحب!');
                 switchTab('profile', document.querySelectorAll('.nav-item')[4]);
                 return;
@@ -352,7 +352,7 @@
                 return;
             }
 
-            if (!tonConnectUI.connected) {
+            if (typeof tonConnectUI === 'undefined' || !tonConnectUI.connected) {
                 alert('يرجى ربط محفظة TON أولاً من قسم الحساب لإتمام الدفع عبر البلوكتشين!');
                 switchTab('profile', document.querySelectorAll('.nav-item')[4]);
                 closeCampaignModal();
@@ -373,4 +373,4 @@
 
             try {
                 const result = await tonConnectUI.sendTransaction(transaction);
-                userData.campaigns.push({ link: link, clicks: currentCampaign.clicks, cost: currentCampaign.
+                userData.campaigns.push({ link: link, clicks: currentCampaign.clicks
