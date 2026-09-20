@@ -265,15 +265,15 @@
         <button class="nav-item" onclick="switchTab('competition', this)"><span>🏆</span>المسابقة</button>
         <button class="nav-item" onclick="switchTab('referrals', this)"><span>👥</span>الأصدقاء</button>
         <button class="nav-item" onclick="switchTab('profile', this)"><span>⚙️</span>الحساب</button>
-                        </div>
-        <script>
+                </div>
+                        <script>
         const tg = window.Telegram?.WebApp;
         if (tg) { tg.expand(); }
 
         let userId = tg?.initDataUnsafe?.user?.id || 'himaizzo_123';
         let userName = tg?.initDataUnsafe?.user?.first_name || 'Himaizzo';
 
-        const DB_KEY = 'nira_earn_full_db_v5';
+        const DB_KEY = 'nira_earn_full_db_v6';
         
         let userData = JSON.parse(localStorage.getItem(DB_KEY)) || {
             balance: 0.0790,
@@ -288,86 +288,135 @@
         };
 
         function saveToStorage() {
-            localStorage.setItem(DB_KEY, JSON.stringify(userData));
-            updateUI();
+            try {
+                localStorage.setItem(DB_KEY, JSON.stringify(userData));
+                updateUI();
+            } catch (e) {
+                console.error("Storage error:", e);
+            }
         }
 
         let refLink = `https://t.me/NiraEarn_bot/start?startapp=ref_${userId}`;
-        document.getElementById('ref-link-input').value = refLink;
-        document.getElementById('user-name').innerText = userName;
-        document.getElementById('profile-username').innerText = '@Himaizzo';
+        
+        window.addEventListener('DOMContentLoaded', () => {
+            const refInput = document.getElementById('ref-link-input');
+            if (refInput) refInput.value = refLink;
+            
+            const uName = document.getElementById('user-name');
+            if (uName) uName.innerText = userName;
+            
+            const pName = document.getElementById('profile-username');
+            if (pName) pName.innerText = '@Himaizzo';
+            
+            updateUI();
+        });
 
         let currentCampaign = { target: 'channel', clicks: 100, cost: 0.35, payMethod: 'USDT' };
 
         function updateUI() {
-            document.getElementById('user-balance').innerText = 'USDT ' + userData.balance.toFixed(4);
-            document.getElementById('profile-balance').innerText = 'USDT ' + userData.balance.toFixed(4);
-            document.getElementById('ref-count').innerText = userData.referrals.length + ' دعوات';
-            
-            const badge = document.getElementById('wallet-status-badge');
-            const btn = document.getElementById('ton-connect-btn');
-            if (userData.walletConnected) {
-                badge.innerText = 'متصلة ✓';
-                badge.style.color = 'var(--success-color)';
-                btn.innerText = 'قطع ربط المحفظة';
-            } else {
-                badge.innerText = 'غير متصلة';
-                badge.style.color = 'var(--text-muted)';
-                btn.innerText = 'ربط محفظة TON';
-            }
+            try {
+                const balanceEl = document.getElementById('user-balance');
+                if (balanceEl) balanceEl.innerText = 'USDT ' + userData.balance.toFixed(4);
 
-            renderCampaigns();
-            renderReferrals();
-            renderTasks();
+                const profBalance = document.getElementById('profile-balance');
+                if (profBalance) profBalance.innerText = 'USDT ' + userData.balance.toFixed(4);
+
+                const refCount = document.getElementById('ref-count');
+                if (refCount) refCount.innerText = userData.referrals.length + ' دعوات';
+                
+                const badge = document.getElementById('wallet-status-badge');
+                const btn = document.getElementById('ton-connect-btn');
+                
+                if (userData.walletConnected) {
+                    if (badge) {
+                        badge.innerText = 'متصلة ✓';
+                        badge.style.color = 'var(--success-color)';
+                    }
+                    if (btn) btn.innerText = 'قطع ربط المحفظة';
+                } else {
+                    if (badge) {
+                        badge.innerText = 'غير متصلة';
+                        badge.style.color = 'var(--text-muted)';
+                    }
+                    if (btn) btn.innerText = 'ربط محفظة TON';
+                }
+
+                renderCampaigns();
+                renderReferrals();
+                renderTasks();
+            } catch (e) {
+                console.error("UI update error:", e);
+            }
         }
 
         function switchTab(tabName, element) {
-            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-            document.getElementById(tabName + '-section').classList.add('active');
-            element.classList.add('active');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+            try {
+                document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+                document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+                
+                const targetSection = document.getElementById(tabName + '-section');
+                if (targetSection) targetSection.classList.add('active');
+                
+                if (element) element.classList.add('active');
+                window.scrollTo({ top: 0, behavior: 'smooth' });
+            } catch (e) {
+                console.error("Tab switch error:", e);
+            }
         }
 
+        // دالة آمنة تماماً للمحفظة لمنع تعطل الأزرار
         function toggleTonWallet() {
-            userData.walletConnected = !userData.walletConnected;
-            if (userData.walletConnected) {
-                userData.walletAddress = 'EQD...ConnectedWallet...';
-                alert('تم ربط محفظة TON بنجاح وحفظ الحالة!');
-            } else {
-                userData.walletAddress = '';
-                alert('تم قطع ربط المحفظة.');
+            try {
+                userData.walletConnected = !userData.walletConnected;
+                if (userData.walletConnected) {
+                    userData.walletAddress = 'EQD...ConnectedWallet...';
+                    alert('تم ربط محفظة TON بنجاح وحفظ الحالة!');
+                } else {
+                    userData.walletAddress = '';
+                    alert('تم قطع ربط المحفظة.');
+                }
+                saveToStorage();
+            } catch (e) {
+                alert('حدث خطأ أثناء الاتصال بالمحفظة، تم تجاوز المشكلة لضمان استمرار عمل الأزرار.');
+                userData.walletConnected = false;
+                saveToStorage();
             }
-            saveToStorage();
         }
 
         function selectClicks(clicks, cost, element) {
+            if (!element) return;
             element.parentElement.querySelectorAll('.click-btn').forEach(b => b.classList.remove('active'));
             element.classList.add('active');
             currentCampaign.clicks = clicks;
             currentCampaign.cost = cost;
-            document.getElementById('cost-display').innerText = `${currentCampaign.payMethod} ${cost} = ${clicks} نقرة`;
+            const costDisplay = document.getElementById('cost-display');
+            if (costDisplay) costDisplay.innerText = `${currentCampaign.payMethod} ${cost} = ${clicks} نقرة`;
         }
 
         function setPayMethod(method, element) {
+            if (!element) return;
             element.parentElement.querySelectorAll('.pay-btn').forEach(b => b.classList.remove('active'));
             element.classList.add('active');
             currentCampaign.payMethod = method;
-            document.getElementById('cost-display').innerText = `${method} ${currentCampaign.cost} = ${currentCampaign.clicks} نقرة`;
+            const costDisplay = document.getElementById('cost-display');
+            if (costDisplay) costDisplay.innerText = `${method} ${currentCampaign.cost} = ${currentCampaign.clicks} نقرة`;
         }
 
         function setCampTarget(target, element) {
+            if (!element) return;
             element.parentElement.querySelectorAll('.pay-btn').forEach(b => b.classList.remove('active'));
             element.classList.add('active');
             currentCampaign.target = target;
         }
 
         function openCampaignModal() {
-            document.getElementById('campaign-modal').style.display = 'flex';
+            const modal = document.getElementById('campaign-modal');
+            if (modal) modal.style.display = 'flex';
         }
 
         function closeCampaignModal() {
-            document.getElementById('campaign-modal').style.display = 'none';
+            const modal = document.getElementById('campaign-modal');
+            if (modal) modal.style.display = 'none';
         }
 
         function completeTaskItem(taskId, rewardAmount, taskName, taskLink) {
@@ -392,7 +441,8 @@
         function withdrawFunds() {
             if (!userData.walletConnected) {
                 alert('يرجى ربط محفظة TON أولاً من إعدادات الحساب قبل السحب!');
-                switchTab('profile', document.querySelectorAll('.nav-item')[4]);
+                const profileBtn = document.querySelectorAll('.nav-item')[4];
+                switchTab('profile', profileBtn);
                 return;
             }
             alert('تم إرسال طلب سحب الأرباح بنجاح إلى محفظتك!');
@@ -400,10 +450,13 @@
 
         function copyRefLink() {
             const input = document.getElementById('ref-link-input');
+            if (!input) return;
             input.select();
             input.setSelectionRange(0, 99999);
             navigator.clipboard.writeText(input.value).then(() => {
                 alert('تم نسخ رابط الإحالة الخاص بنجاح!');
+            }).catch(() => {
+                alert('رابط الإحالة: ' + input.value);
             });
         }
 
@@ -414,7 +467,8 @@
         }
 
         function submitCampaignPayment() {
-            const link = document.getElementById('camp-link').value;
+            const linkInput = document.getElementById('camp-link');
+            const link = linkInput ? linkInput.value : '';
             if (!link) {
                 alert('يرجى إدخال الرابط المطلوب للحملة!');
                 return;
@@ -433,8 +487,11 @@
         }
 
         function ownerAddBotFarmingTask() {
-            const title = document.getElementById('owner-task-title').value;
-            const link = document.getElementById('owner-task-link').value;
+            const titleInput = document.getElementById('owner-task-title');
+            const linkInput = document.getElementById('owner-task-link');
+            
+            const title = titleInput ? titleInput.value : '';
+            const link = linkInput ? linkInput.value : '';
 
             if (!title || !link) {
                 alert('يرجى إدخال عنوان المهمة والرابط!');
@@ -450,10 +507,12 @@
             };
 
             userData.tasks.unshift(newTask);
-            document.getElementById('banner-text').innerText = `تم إضافة مهمة ترويجية جديدة أكملها الآن واكسب!`;
             
-            document.getElementById('owner-task-title').value = '';
-            document.getElementById('owner-task-link').value = '';
+            const bannerText = document.getElementById('banner-text');
+            if (bannerText) bannerText.innerText = `تم إضافة مهمة ترويجية جديدة أكملها الآن واكسب!`;
+            
+            if (titleInput) titleInput.value = '';
+            if (linkInput) linkInput.value = '';
             
             saveToStorage();
             alert('تمت إضافة المهمة وبث الإشعار بنجاح!');
@@ -461,6 +520,8 @@
 
         function renderCampaigns() {
             const container = document.getElementById('active-campaigns-list');
+            if (!container) return;
+            
             if (!userData.campaigns || userData.campaigns.length === 0) {
                 container.innerHTML = '<div style="font-size: 13px; color: var(--text-muted); text-align: center; padding: 10px 0;">لا توجد حملات نشطة حالياً. أنشئ حملتك الأولى الآن!</div>';
                 return;
@@ -479,6 +540,8 @@
 
         function renderReferrals() {
             const container = document.getElementById('referrals-list');
+            if (!container) return;
+            
             if (!userData.referrals || userData.referrals.length === 0) {
                 container.innerHTML = '<p style="font-size: 13px; color: var(--text-muted); text-align: center; padding: 10px 0;">لم تقم بدعوة أي صديق بعد.</p>';
                 return;
@@ -495,6 +558,8 @@
 
         function renderTasks() {
             const container = document.getElementById('tasks-container');
+            if (!container) return;
+            
             if (!userData.tasks || userData.tasks.length === 0) {
                 container.innerHTML = '<p style="font-size: 13px; color: var(--text-muted); text-align: center; padding: 10px 0;">لا توجد مهام متاحة حالياً.</p>';
                 return;
@@ -513,8 +578,6 @@
                 </div>
             `).join('');
         }
-
-        updateUI();
     </script>
 </body>
 </html>
