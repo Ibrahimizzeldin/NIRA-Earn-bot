@@ -5,6 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>PaidZ - Telegram Mini App</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
+    <script src="https://unpkg.com/@tonconnect/sdk@latest/dist/tonconnect-sdk.min.js"></script>
     <style>
         :root {
             --bg-color: #080b11;
@@ -80,15 +81,46 @@
         .pay-btn.active { border-color: var(--btn-primary); background: rgba(37,99,235,0.15); color: #60a5fa; }
 
         .section-title { font-size: 18px; font-weight: 700; margin-bottom: 14px; }
+        
+        /* إشعار البث المباشر داخل التطبيق */
+        #broadcast-banner {
+            background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
+            border: 1px solid var(--accent-color);
+            border-radius: 14px;
+            padding: 12px 16px;
+            margin-bottom: 16px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 15px rgba(0,255,204,0.15);
+            animation: pulse-glow 2s infinite;
+        }
+        @keyframes pulse-glow {
+            0% { border-color: rgba(0,255,204,0.4); }
+            50% { border-color: rgba(0,255,204,1); }
+            100% { border-color: rgba(0,255,204,0.4); }
+        }
     </style>
 </head>
 <body>
 
     <div class="container">
+        <!-- شريط الإشعارات الفورية (بث رسائل المهام الجديدة للمشتركين) -->
+        <div id="broadcast-banner">
+            <div style="display: flex; align-items: center; gap: 10px;">
+                <span style="font-size: 22px;">📢</span>
+                <div>
+                    <div style="font-size: 12px; color: var(--accent-color); font-weight: 700;">مهمة مدفوعة جديدة متاحة!</div>
+                    <div style="font-size: 13px; color: #fff;" id="banner-text">تم إضافة مهمة ترويجية جديدة أكملها الآن واكسب!</div>
+                </div>
+            </div>
+            <button class="btn btn-success" style="width: auto; margin-top: 0; padding: 6px 12px; font-size: 11px;" onclick="switchTab('tasks', document.querySelectorAll('.nav-item')[1])">عرض</button>
+        </div>
+
         <!-- الرئيسية -->
         <div id="home-section" class="section active">
             <div class="card balance-box">
-                <p style="color: var(--text-muted); font-size: 13px;">مرحباً بك، <span style="color: #fff; font-weight: 600;">أبو تميم</span></p>
+                <p style="color: var(--text-muted); font-size: 13px;">مرحباً بك، <span style="color: #fff; font-weight: 600;" id="user-name">أبو تميم</span></p>
                 <div class="balance-num" id="user-balance">0.0790 USDT</div>
                 <button class="btn" onclick="withdrawFunds()">سحب الأرباح عبر البلوكتشين</button>
                 <button class="btn btn-secondary" onclick="openCampaignModal()">+ إنشاء حملة إعلانية جديدة</button>
@@ -96,8 +128,8 @@
             
             <div class="card">
                 <h3 class="section-title">📊 إدارة الحملات النشطة</h3>
-                <div id="active-campaigns-list" style="font-size: 13px; color: var(--text-muted); text-align: center; padding: 10px 0;">
-                    لا توجد حملات نشطة حالياً. أنشئ حملتك الأولى الآن!
+                <div id="active-campaigns-list">
+                    <!-- سيتم تعبئتها ديناميكياً -->
                 </div>
             </div>
 
@@ -123,23 +155,21 @@
         <!-- المهام -->
         <div id="tasks-section" class="section">
             <h2 class="section-title">📋 المهام المتاحة</h2>
-            <div class="card">
-                <div class="list-item">
-                    <div>
-                        <span class="badge" style="background: rgba(16,185,129,0.15); color: var(--success-color);">موثق ✓</span>
-                        <h4 style="margin-top: 6px; font-size: 15px;">اشتراك في قناة تليجرام</h4>
-                        <p style="font-size: 11px; color: var(--text-muted);">مكافأة: +0.0010 USDT</p>
-                    </div>
-                    <button class="btn btn-success" style="width: auto; padding: 8px 14px; font-size: 12px; margin-top: 0;" onclick="completeTaskItem(this, 0.0010, 'قناة تليجرام')">تحقق واكسب</button>
+            
+            <!-- زر لوحة تحكم المالك الخاصة لإضافة مهمة ترويجية يومية وإرسال الإشعار -->
+            <div class="card" id="owner-admin-panel" style="background: rgba(37,99,235,0.08); border-color: var(--btn-primary); display: none;">
+                <h3 style="font-size: 14px; color: var(--accent-color); margin-bottom: 10px;">👑 لوحة تحكم المالك (إضافة مهمة ترويجية وبث إشعار)</h3>
+                <div class="form-group" style="margin-bottom: 10px;">
+                    <input type="text" class="form-control" id="owner-task-title" placeholder="عنوان المهمة (مثال: تفاعل مع بوت التعدين الجديد)">
                 </div>
-                <div class="list-item">
-                    <div>
-                        <span class="badge" style="background: rgba(16,185,129,0.15); color: var(--success-color);">موثق ✓</span>
-                        <h4 style="margin-top: 6px; font-size: 15px;">تفاعل مع بوت Mini App</h4>
-                        <p style="font-size: 11px; color: var(--text-muted);">مكافأة: +0.0010 USDT</p>
-                    </div>
-                    <button class="btn btn-success" style="width: auto; padding: 8px 14px; font-size: 12px; margin-top: 0;" onclick="completeTaskItem(this, 0.0010, 'بوت Mini App')">تحقق واكسب</button>
+                <div class="form-group" style="margin-bottom: 10px;">
+                    <input type="text" class="form-control" id="owner-task-link" placeholder="رابط الإحالة الخاص بك للبوت الخارجي (t.me/bot?start=...)">
                 </div>
+                <button class="btn btn-success" onclick="ownerAddBotFarmingTask()">إضافة المهمة وبث الإشعار للمشتركين</button>
+            </div>
+
+            <div class="card" id="tasks-container">
+                <!-- المهام ستعرض هنا -->
             </div>
         </div>
 
@@ -147,9 +177,23 @@
         <div id="referrals-section" class="section">
             <h2 class="section-title">👥 برنامج الإحالات والأصدقاء</h2>
             <div class="card" style="text-align: center;">
-                <p style="color: var(--text-muted); font-size: 13px;">ادعُ أصدقاءك واربح مكافآت مضمونة</p>
-                <div class="balance-num" style="font-size: 28px;" id="ref-count">0 دعوات</div>
-                <button class="btn" style="margin-top: 10px;" onclick="copyRefLink()">نسخ رابط الإحالة الخاص</button>
+                <p style="color: var(--text-muted); font-size: 13px;">ادعُ أصدقاءك واربح 10% من إنتاج المُحال</p>
+                <div class="balance-num" style="font-size: 24px;" id="ref-count">0 دعوات</div>
+                
+                <div style="margin: 15px 0;">
+                    <input type="text" class="form-control" id="ref-link-input" readonly style="text-align: center; font-size: 12px; margin-bottom: 8px; background: #080b11;">
+                    <div style="display: flex; gap: 8px;">
+                        <button class="btn" style="margin-top: 0;" onclick="copyRefLink()">نسخ الرابط</button>
+                        <button class="btn btn-success" style="margin-top: 0;" onclick="shareOnTelegram()">مشاركة في تليجرام</button>
+                    </div>
+                </div>
+            </div>
+
+            <div class="card">
+                <h3 class="section-title" style="font-size: 15px;">قائمة الأصدقاء المحالين</h3>
+                <div id="referrals-list">
+                    <p style="font-size: 13px; color: var(--text-muted); text-align: center; padding: 10px 0;">لم تقم بدعوة أي صديق بعد.</p>
+                </div>
             </div>
         </div>
 
@@ -172,14 +216,18 @@
             <div class="card">
                 <div class="list-item">
                     <span style="color: var(--text-muted);">اسم المستخدم</span>
-                    <span class="badge">Himaizzo@</span>
+                    <span class="badge" id="profile-username">Himaizzo@</span>
                 </div>
                 <div class="list-item">
                     <span style="color: var(--text-muted);">رصيد المنصة الحالي</span>
-                    <span style="color: var(--accent-color); font-weight: 700;">0.0790 USDT</span>
+                    <span style="color: var(--accent-color); font-weight: 700;" id="profile-balance">0.0790 USDT</span>
+                </div>
+                <div class="list-item" style="border-bottom: none;">
+                    <span style="color: var(--text-muted);">حالة المحفظة</span>
+                    <span class="badge" id="wallet-status-badge" style="color: var(--text-muted);">غير متصلة</span>
                 </div>
                 <div style="padding-top: 16px;">
-                    <button class="btn btn-secondary" onclick="connectWalletManual()">ربط محفظة TON</button>
+                    <button class="btn btn-secondary" id="ton-connect-btn" onclick="toggleTonWallet()">ربط محفظة TON</button>
                 </div>
             </div>
         </div>
@@ -203,7 +251,7 @@
             </div>
 
             <div class="form-group">
-                <label>رابط قناة تليجرام أو موقع</label>
+                <label>رابط قناة تليجرام أو موقع (قناة البوت الرسمية مجانية)</label>
                 <input type="text" class="form-control" id="camp-link" placeholder="t.me/channel_username">
             </div>
 
@@ -244,136 +292,66 @@
     </div>
 
     <script>
-        let userData = JSON.parse(localStorage.getItem('paidz_user_data')) || {
+        // إعداد تليجرام SDK
+        const tg = window.Telegram?.WebApp;
+        if (tg) {
+            tg.expand();
+        }
+
+        let userId = tg?.initDataUnsafe?.user?.id || '123456789';
+        let userName = tg?.initDataUnsafe?.user?.first_name || 'أبو تميم';
+
+        // بيانات المستخدم الافتراضية مع تضمين الحملات والمهام ونظام الإحالات
+        let userData = JSON.parse(localStorage.getItem('paidz_user_data_' + userId)) || {
             balance: 0.0790,
-            referrals: 0,
-            campaigns: []
+            walletConnected: false,
+            walletAddress: '',
+            referrals: [
+                { name: 'محمد أحمد', production: 0.0050, earned: 0.0005 },
+                { name: 'عمر خالد', production: 0.0120, earned: 0.0012 }
+            ],
+            campaigns: [
+                { link: 't.me/AbuTamimOfficial', clicks: 100, cost: 0.00, status: 'نشطة (قناة البوت الرسمية - مجانية)' }
+            ],
+            tasks: [
+                { id: 1, title: 'اشتراك في قناة تليجرام الرسمية', reward: 0.0010, link: 'https://t.me/AbuTamimOfficial', completed: false },
+                { id: 2, title: 'تفاعل مع بوت التعدين الشريك', reward: 0.0010, link: 'https://t.me/StarMineBot', completed: false }
+            ]
         };
 
-        let currentCampaign = {
-            target: 'channel',
-            clicks: 100,
-            cost: 0.35,
-            payMethod: 'USDT'
-        };
-
-        function updateUI() {
-            document.getElementById('user-balance').innerText = userData.balance.toFixed(4) + ' USDT';
-            document.getElementById('ref-count').innerText = userData.referrals + ' دعوات';
-            renderCampaigns();
-            localStorage.setItem('paidz_user_data', JSON.stringify(userData));
-        }
-        updateUI();
-
-        function switchTab(tabName, element) {
-            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
-            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
-            document.getElementById(tabName + '-section').classList.add('active');
-            element.classList.add('active');
-            window.scrollTo({ top: 0, behavior: 'smooth' });
+        // إظهار لوحة تحكم المالك إذا كان المستخدم هو أبو تميم أو افتراضياً للاختبار
+        if (userName.includes('أبو تميم') || userId == '123456789' || true) {
+            document.getElementById('owner-admin-panel').style.display = 'block';
         }
 
-        function selectClicks(clicks, cost, element) {
-            element.parentElement.querySelectorAll('.click-btn').forEach(b => b.classList.remove('active'));
-            element.classList.add('active');
-            currentCampaign.clicks = clicks;
-            currentCampaign.cost = cost;
-            document.getElementById('cost-display').innerText = `${currentCampaign.payMethod} ${cost} = ${clicks} نقرة`;
-        }
+        let refLink = `https://t.me/PaidZ_bot/start?startapp=ref_${userId}`;
+        document.getElementById('ref-link-input').value = refLink;
+        document.getElementById('user-name').innerText = userName;
+        document.getElementById('profile-username').innerText = userName + '@';
 
-        function setPayMethod(method, element) {
-            element.parentElement.querySelectorAll('.pay-btn').forEach(b => b.classList.remove('active'));
-            element.classList.add('active');
-            currentCampaign.payMethod = method;
-            document.getElementById('cost-display').innerText = `${method} ${currentCampaign.cost} = ${currentCampaign.clicks} نقرة`;
-        }
+        // تهيئة محفظة TON Connect الحقيقية
+        const tonConnectUI = new TON_CONNECT_SDK.TonConnectUI({
+            manifestUrl: 'https://raw.githubusercontent.com/ton-connect/docs/main/media/tonconnect-manifest.json',
+            buttonRootId: null
+        });
 
-        function setCampTarget(target, element) {
-            element.parentElement.querySelectorAll('.pay-btn').forEach(b => b.classList.remove('active'));
-            element.classList.add('active');
-            currentCampaign.target = target;
-        }
-
-        function openCampaignModal() {
-            document.getElementById('campaign-modal').style.display = 'flex';
-        }
-
-        function closeCampaignModal() {
-            document.getElementById('campaign-modal').style.display = 'none';
-        }
-
-        function completeTaskItem(btnElement, rewardAmount, taskName) {
-            userData.balance += rewardAmount;
-            btnElement.innerText = "تم الإنجاز ✓";
-            btnElement.className = "btn btn-completed";
-            btnElement.disabled = true;
-            updateUI();
-            alert(`مبروك! تمت إضافة مكافأة المهمة (${taskName}): +${rewardAmount.toFixed(4)} USDT`);
-        }
-
-        function watchAdReward(adValue, networkName) {
-            userData.balance += adValue;
-            updateUI();
-            alert(`تمت مشاهدة إعلان ${networkName} بنجاح! تمت إضافة +${adValue.toFixed(4)} USDT`);
-        }
-
-        function connectWalletManual() {
-            alert('تم ربط المحفظة بنجاح!');
-        }
-
-        function withdrawFunds() {
-            alert('تم إرسال طلب سحب الأرباح بنجاح إلى محفظتك!');
-        }
-
-        function copyRefLink() {
-            const refLink = "https://t.me/PaidZ_bot/start?startapp=ref_user";
-            if (navigator.clipboard && navigator.clipboard.writeText) {
-                navigator.clipboard.writeText(refLink).then(() => {
-                    alert('تم نسخ رابط الإحالة بنجاح!');
-                }).catch(() => {
-                    prompt('انسخ الرابط يدوياً:', refLink);
-                });
+        tonConnectUI.onStatusChange(wallet => {
+            if (wallet) {
+                userData.walletConnected = true;
+                userData.walletAddress = wallet.account.address;
+                document.getElementById('wallet-status-badge').innerText = 'متصلة ✓';
+                document.getElementById('wallet-status-badge').style.color = 'var(--success-color)';
+                document.getElementById('ton-connect-btn').innerText = 'قطع ربط المحفظة';
+                alert('تم ربط المحفظة الحقيقية بنجاح عبر البلوكتشين!');
             } else {
-                prompt('انسخ الرابط يدوياً:', refLink);
+                userData.walletConnected = false;
+                userData.walletAddress = '';
+                document.getElementById('wallet-status-badge').innerText = 'غير متصلة';
+                document.getElementById('wallet-status-badge').style.color = 'var(--text-muted)';
+                document.getElementById('ton-connect-btn').innerText = 'ربط محفظة TON';
             }
-        }
-
-        function submitCampaignPayment() {
-            const link = document.getElementById('camp-link').value;
-            if (!link) {
-                alert('يرجى إدخال رابط القناة أو الموقع المطلوبة للحملة!');
-                return;
-            }
-
-            userData.campaigns.push({ 
-                link: link, 
-                clicks: currentCampaign.clicks, 
-                cost: currentCampaign.cost, 
-                status: 'نشطة' 
-            });
-            
             updateUI();
-            closeCampaignModal();
-            alert('تم إنشاء وتفعيل الحملة الإعلانية بنجاح!');
-        }
+        });
 
-        function renderCampaigns() {
-            const container = document.getElementById('active-campaigns-list');
-            if (!userData.campaigns || userData.campaigns.length === 0) {
-                container.innerHTML = 'لا توجد حملات نشطة حالياً. أنشئ حملتك الأولى الآن!';
-                return;
-            }
-            container.innerHTML = userData.campaigns.map((c) => `
-                <div style="background: #080b11; padding: 12px; border-radius: 12px; margin-top: 8px; border: 1px solid var(--card-border);">
-                    <div style="font-weight: 600; margin-bottom: 4px; word-break: break-all;">رابط: ${c.link}</div>
-                    <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted);">
-                        <span>النقرات: ${c.clicks}</span>
-                        <span style="color: var(--success-color);">الحالة: ${c.status}</span>
-                        <span style="color: #f3ba2f;">التكلفة: ${c.cost}$</span>
-                    </div>
-                </div>
-            `).join('');
-        }
-    </script>
-</body>
-</html>
+        async function toggleTonWallet() {
+            
