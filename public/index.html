@@ -96,7 +96,6 @@
 <body>
 
     <div class="container">
-        <!-- شريط البث الفوري والتنبيهات -->
         <div id="broadcast-banner">
             <div style="display: flex; align-items: center; gap: 10px;">
                 <span style="font-size: 22px;">📢</span>
@@ -108,7 +107,6 @@
             <button class="btn btn-success" style="width: auto; margin-top: 0; padding: 6px 12px; font-size: 11px;" onclick="switchTab('tasks', document.querySelectorAll('.nav-item')[1])">عرض</button>
         </div>
 
-        <!-- الرئيسية -->
         <div id="home-section" class="section active">
             <div class="card balance-box">
                 <p style="color: var(--text-muted); font-size: 13px;">مرحباً بك، <span style="color: #fff; font-weight: 600;" id="user-name">أبو تميم</span></p>
@@ -141,11 +139,9 @@
             </div>
         </div>
 
-        <!-- المهام -->
         <div id="tasks-section" class="section">
             <h2 class="section-title">📋 المهام المتاحة</h2>
             
-            <!-- لوحة تحكم المالك لبث المهام -->
             <div class="card" id="owner-admin-panel" style="background: rgba(37,99,235,0.08); border-color: var(--btn-primary);">
                 <h3 style="font-size: 14px; color: var(--accent-color); margin-bottom: 10px;">👑 لوحة تحكم المالك (إضافة مهمة وبث إشعار)</h3>
                 <div class="form-group" style="margin-bottom: 10px;">
@@ -160,7 +156,6 @@
             <div class="card" id="tasks-container"></div>
         </div>
 
-        <!-- الأصدقاء -->
         <div id="referrals-section" class="section">
             <h2 class="section-title">👥 برنامج الإحالات والأصدقاء</h2>
             <div class="card" style="text-align: center;">
@@ -182,7 +177,6 @@
             </div>
         </div>
 
-        <!-- المسابقات -->
         <div id="competition-section" class="section">
             <h2 class="section-title">🏆 المسابقات والبطولات الأسبوعية</h2>
             <div class="card">
@@ -195,7 +189,6 @@
             </div>
         </div>
 
-        <!-- الحساب -->
         <div id="profile-section" class="section">
             <h2 class="section-title">⚙️ إعدادات الحساب</h2>
             <div class="card">
@@ -218,7 +211,6 @@
         </div>
     </div>
 
-    <!-- نافذة إنشاء حملة إعلانية -->
     <div id="campaign-modal" class="modal">
         <div class="modal-content">
             <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 16px;">
@@ -267,16 +259,14 @@
         </div>
     </div>
 
-    <!-- شريط التنقل السفلي -->
     <div class="nav-bar">
         <button class="nav-item active" onclick="switchTab('home', this)"><span>🏠</span>الرئيسية</button>
         <button class="nav-item" onclick="switchTab('tasks', this)"><span>📋</span>المهام</button>
         <button class="nav-item" onclick="switchTab('competition', this)"><span>🏆</span>المسابقة</button>
         <button class="nav-item" onclick="switchTab('referrals', this)"><span>👥</span>الأصدقاء</button>
         <button class="nav-item" onclick="switchTab('profile', this)"><span>⚙️</span>الحساب</button>
-    </div>
-
-    <script>
+                        </div>
+        <script>
         const tg = window.Telegram?.WebApp;
         if (tg) { tg.expand(); }
 
@@ -363,4 +353,168 @@
             element.parentElement.querySelectorAll('.pay-btn').forEach(b => b.classList.remove('active'));
             element.classList.add('active');
             currentCampaign.payMethod = method;
-            document.getElementById('cost-display').innerText = `${method} ${currentCampa
+            document.getElementById('cost-display').innerText = `${method} ${currentCampaign.cost} = ${currentCampaign.clicks} نقرة`;
+        }
+
+        function setCampTarget(target, element) {
+            element.parentElement.querySelectorAll('.pay-btn').forEach(b => b.classList.remove('active'));
+            element.classList.add('active');
+            currentCampaign.target = target;
+        }
+
+        function openCampaignModal() {
+            document.getElementById('campaign-modal').style.display = 'flex';
+        }
+
+        function closeCampaignModal() {
+            document.getElementById('campaign-modal').style.display = 'none';
+        }
+
+        function completeTaskItem(taskId, rewardAmount, taskName, taskLink) {
+            if (taskLink) {
+                window.open(taskLink, '_blank');
+            }
+            let task = userData.tasks.find(t => t.id === taskId);
+            if (task && !task.completed) {
+                task.completed = true;
+                userData.balance += rewardAmount;
+                saveToStorage();
+                alert(`مبروك! تمت إضافة المكافأة: +${rewardAmount.toFixed(4)} USDT`);
+            }
+        }
+
+        function watchAdReward(adValue, networkName) {
+            userData.balance += adValue;
+            saveToStorage();
+            alert(`تمت مشاهدة إعلان ${networkName} بنجاح! تمت إضافة +${adValue.toFixed(4)} USDT`);
+        }
+
+        function withdrawFunds() {
+            if (!userData.walletConnected) {
+                alert('يرجى ربط محفظة TON أولاً من إعدادات الحساب قبل السحب!');
+                switchTab('profile', document.querySelectorAll('.nav-item')[4]);
+                return;
+            }
+            alert('تم إرسال طلب سحب الأرباح بنجاح إلى محفظتك!');
+        }
+
+        function copyRefLink() {
+            const input = document.getElementById('ref-link-input');
+            input.select();
+            input.setSelectionRange(0, 99999);
+            navigator.clipboard.writeText(input.value).then(() => {
+                alert('تم نسخ رابط الإحالة الخاص بنجاح!');
+            });
+        }
+
+        function shareOnTelegram() {
+            const text = encodeURIComponent("انضم إلي الآن واربح العملات الرقمية عبر تطبيق NIRA Earn!");
+            const url = `https://t.me/share/url?url=${encodeURIComponent(refLink)}&text=${text}`;
+            window.open(url, '_blank');
+        }
+
+        function submitCampaignPayment() {
+            const link = document.getElementById('camp-link').value;
+            if (!link) {
+                alert('يرجى إدخال الرابط المطلوب للحملة!');
+                return;
+            }
+
+            userData.campaigns.unshift({ 
+                link: link, 
+                clicks: currentCampaign.clicks, 
+                cost: currentCampaign.cost, 
+                status: 'نشطة' 
+            });
+            
+            saveToStorage();
+            closeCampaignModal();
+            alert('تم إنشاء وتفعيل الحملة الإعلانية بنجاح!');
+        }
+
+        function ownerAddBotFarmingTask() {
+            const title = document.getElementById('owner-task-title').value;
+            const link = document.getElementById('owner-task-link').value;
+
+            if (!title || !link) {
+                alert('يرجى إدخال عنوان المهمة والرابط!');
+                return;
+            }
+
+            const newTask = {
+                id: Date.now(),
+                title: title,
+                reward: 0.0010,
+                link: link,
+                completed: false
+            };
+
+            userData.tasks.unshift(newTask);
+            document.getElementById('banner-text').innerText = `تم إضافة مهمة ترويجية جديدة أكملها الآن واكسب!`;
+            
+            document.getElementById('owner-task-title').value = '';
+            document.getElementById('owner-task-link').value = '';
+            
+            saveToStorage();
+            alert('تمت إضافة المهمة وبث الإشعار بنجاح!');
+        }
+
+        function renderCampaigns() {
+            const container = document.getElementById('active-campaigns-list');
+            if (!userData.campaigns || userData.campaigns.length === 0) {
+                container.innerHTML = '<div style="font-size: 13px; color: var(--text-muted); text-align: center; padding: 10px 0;">لا توجد حملات نشطة حالياً. أنشئ حملتك الأولى الآن!</div>';
+                return;
+            }
+            container.innerHTML = userData.campaigns.map((c) => `
+                <div style="background: #080b11; padding: 12px; border-radius: 12px; margin-top: 8px; border: 1px solid var(--card-border);">
+                    <div style="font-weight: 600; margin-bottom: 4px; word-break: break-all; font-size: 13px;">رابط: ${c.link}</div>
+                    <div style="display: flex; justify-content: space-between; font-size: 12px; color: var(--text-muted);">
+                        <span>النقرات: ${c.clicks}</span>
+                        <span style="color: var(--success-color);">${c.status}</span>
+                        <span style="color: #f3ba2f;">التكلفة: ${c.cost}$</span>
+                    </div>
+                </div>
+            `).join('');
+        }
+
+        function renderReferrals() {
+            const container = document.getElementById('referrals-list');
+            if (!userData.referrals || userData.referrals.length === 0) {
+                container.innerHTML = '<p style="font-size: 13px; color: var(--text-muted); text-align: center; padding: 10px 0;">لم تقم بدعوة أي صديق بعد.</p>';
+                return;
+            }
+            container.innerHTML = userData.referrals.map((ref) => `
+                <div class="list-item">
+                    <div>
+                        <strong style="font-size: 14px;">${ref.name}</strong>
+                    </div>
+                    <span class="badge" style="background: rgba(16,185,129,0.15); color: var(--success-color);">مكتسب</span>
+                </div>
+            `).join('');
+        }
+
+        function renderTasks() {
+            const container = document.getElementById('tasks-container');
+            if (!userData.tasks || userData.tasks.length === 0) {
+                container.innerHTML = '<p style="font-size: 13px; color: var(--text-muted); text-align: center; padding: 10px 0;">لا توجد مهام متاحة حالياً.</p>';
+                return;
+            }
+            container.innerHTML = userData.tasks.map((t) => `
+                <div class="list-item">
+                    <div>
+                        <span class="badge" style="background: rgba(16,185,129,0.15); color: var(--success-color);">موثق ✓</span>
+                        <h4 style="margin-top: 6px; font-size: 15px;">${t.title}</h4>
+                        <p style="font-size: 11px; color: var(--text-muted);">مكافأة: +${t.reward.toFixed(4)} USDT</p>
+                    </div>
+                    ${t.completed ? 
+                        `<button class="btn btn-completed" style="width: auto; padding: 8px 14px; font-size: 12px; margin-top: 0;" disabled>تم الإنجاز ✓</button>` :
+                        `<button class="btn btn-success" style="width: auto; padding: 8px 14px; font-size: 12px; margin-top: 0;" onclick="completeTaskItem(${t.id},${t.reward}, '${t.title}', '${t.link}')">تحقق واكسب</button>`
+                    }
+                </div>
+            `).join('');
+        }
+
+        updateUI();
+    </script>
+</body>
+</html>
