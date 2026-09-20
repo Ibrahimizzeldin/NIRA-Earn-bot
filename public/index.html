@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>PaidZ - Telegram Mini App</title>
     <script src="https://telegram.org/js/telegram-web-app.js"></script>
-    <script src="https://unpkg.com/@tonconnect/sdk@latest/dist/tonconnect-sdk.min.js"></script>
     <style>
         :root {
             --bg-color: #080b11;
@@ -82,7 +81,6 @@
 
         .section-title { font-size: 18px; font-weight: 700; margin-bottom: 14px; }
         
-        /* إشعار البث المباشر داخل التطبيق */
         #broadcast-banner {
             background: linear-gradient(135deg, #1e293b 0%, #0f172a 100%);
             border: 1px solid var(--accent-color);
@@ -92,20 +90,13 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
-            box-shadow: 0 4px 15px rgba(0,255,204,0.15);
-            animation: pulse-glow 2s infinite;
-        }
-        @keyframes pulse-glow {
-            0% { border-color: rgba(0,255,204,0.4); }
-            50% { border-color: rgba(0,255,204,1); }
-            100% { border-color: rgba(0,255,204,0.4); }
         }
     </style>
 </head>
 <body>
 
     <div class="container">
-        <!-- شريط الإشعارات الفورية (بث رسائل المهام الجديدة للمشتركين) -->
+        <!-- شريط البث الفوري -->
         <div id="broadcast-banner">
             <div style="display: flex; align-items: center; gap: 10px;">
                 <span style="font-size: 22px;">📢</span>
@@ -128,9 +119,7 @@
             
             <div class="card">
                 <h3 class="section-title">📊 إدارة الحملات النشطة</h3>
-                <div id="active-campaigns-list">
-                    <!-- سيتم تعبئتها ديناميكياً -->
-                </div>
+                <div id="active-campaigns-list"></div>
             </div>
 
             <div class="card">
@@ -156,21 +145,18 @@
         <div id="tasks-section" class="section">
             <h2 class="section-title">📋 المهام المتاحة</h2>
             
-            <!-- زر لوحة تحكم المالك الخاصة لإضافة مهمة ترويجية يومية وإرسال الإشعار -->
-            <div class="card" id="owner-admin-panel" style="background: rgba(37,99,235,0.08); border-color: var(--btn-primary); display: none;">
-                <h3 style="font-size: 14px; color: var(--accent-color); margin-bottom: 10px;">👑 لوحة تحكم المالك (إضافة مهمة ترويجية وبث إشعار)</h3>
+            <div class="card" id="owner-admin-panel" style="background: rgba(37,99,235,0.08); border-color: var(--btn-primary);">
+                <h3 style="font-size: 14px; color: var(--accent-color); margin-bottom: 10px;">👑 لوحة تحكم المالك (إضافة مهمة وبث إشعار)</h3>
                 <div class="form-group" style="margin-bottom: 10px;">
-                    <input type="text" class="form-control" id="owner-task-title" placeholder="عنوان المهمة (مثال: تفاعل مع بوت التعدين الجديد)">
+                    <input type="text" class="form-control" id="owner-task-title" placeholder="عنوان المهمة (مثال: تفاعل مع بوت التعدين)">
                 </div>
                 <div class="form-group" style="margin-bottom: 10px;">
-                    <input type="text" class="form-control" id="owner-task-link" placeholder="رابط الإحالة الخاص بك للبوت الخارجي (t.me/bot?start=...)">
+                    <input type="text" class="form-control" id="owner-task-link" placeholder="رابط الإحالة للبوت الخارجي (t.me/bot?start=...)">
                 </div>
-                <button class="btn btn-success" onclick="ownerAddBotFarmingTask()">إضافة المهمة وبث الإشعار للمشتركين</button>
+                <button class="btn btn-success" onclick="ownerAddBotFarmingTask()">إضافة المهمة وبث الإشعار</button>
             </div>
 
-            <div class="card" id="tasks-container">
-                <!-- المهام ستعرض هنا -->
-            </div>
+            <div class="card" id="tasks-container"></div>
         </div>
 
         <!-- الأصدقاء -->
@@ -251,7 +237,7 @@
             </div>
 
             <div class="form-group">
-                <label>رابط قناة تليجرام أو موقع (قناة البوت الرسمية مجانية)</label>
+                <label>رابط القناة أو الموقع (قناة البوت الرسمية مجانية)</label>
                 <input type="text" class="form-control" id="camp-link" placeholder="t.me/channel_username">
             </div>
 
@@ -292,16 +278,12 @@
     </div>
 
     <script>
-        // إعداد تليجرام SDK
         const tg = window.Telegram?.WebApp;
-        if (tg) {
-            tg.expand();
-        }
+        if (tg) { tg.expand(); }
 
         let userId = tg?.initDataUnsafe?.user?.id || '123456789';
         let userName = tg?.initDataUnsafe?.user?.first_name || 'أبو تميم';
 
-        // بيانات المستخدم الافتراضية مع تضمين الحملات والمهام ونظام الإحالات
         let userData = JSON.parse(localStorage.getItem('paidz_user_data_' + userId)) || {
             balance: 0.0790,
             walletConnected: false,
@@ -319,39 +301,54 @@
             ]
         };
 
-        // إظهار لوحة تحكم المالك إذا كان المستخدم هو أبو تميم أو افتراضياً للاختبار
-        if (userName.includes('أبو تميم') || userId == '123456789' || true) {
-            document.getElementById('owner-admin-panel').style.display = 'block';
-        }
-
         let refLink = `https://t.me/PaidZ_bot/start?startapp=ref_${userId}`;
         document.getElementById('ref-link-input').value = refLink;
         document.getElementById('user-name').innerText = userName;
         document.getElementById('profile-username').innerText = userName + '@';
 
-        // تهيئة محفظة TON Connect الحقيقية
-        const tonConnectUI = new TON_CONNECT_SDK.TonConnectUI({
-            manifestUrl: 'https://raw.githubusercontent.com/ton-connect/docs/main/media/tonconnect-manifest.json',
-            buttonRootId: null
-        });
+        let currentCampaign = { target: 'channel', clicks: 100, cost: 0.35, payMethod: 'USDT' };
 
-        tonConnectUI.onStatusChange(wallet => {
-            if (wallet) {
-                userData.walletConnected = true;
-                userData.walletAddress = wallet.account.address;
-                document.getElementById('wallet-status-badge').innerText = 'متصلة ✓';
-                document.getElementById('wallet-status-badge').style.color = 'var(--success-color)';
-                document.getElementById('ton-connect-btn').innerText = 'قطع ربط المحفظة';
-                alert('تم ربط المحفظة الحقيقية بنجاح عبر البلوكتشين!');
-            } else {
+        function updateUI() {
+            document.getElementById('user-balance').innerText = userData.balance.toFixed(4) + ' USDT';
+            document.getElementById('profile-balance').innerText = userData.balance.toFixed(4) + ' USDT';
+            document.getElementById('ref-count').innerText = userData.referrals.length + ' دعوات';
+            renderCampaigns();
+            renderReferrals();
+            renderTasks();
+            localStorage.setItem('paidz_user_data_' + userId, JSON.stringify(userData));
+        }
+        updateUI();
+
+        function switchTab(tabName, element) {
+            document.querySelectorAll('.section').forEach(s => s.classList.remove('active'));
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active'));
+            document.getElementById(tabName + '-section').classList.add('active');
+            element.classList.add('active');
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        function toggleTonWallet() {
+            if (userData.walletConnected) {
                 userData.walletConnected = false;
                 userData.walletAddress = '';
                 document.getElementById('wallet-status-badge').innerText = 'غير متصلة';
                 document.getElementById('wallet-status-badge').style.color = 'var(--text-muted)';
                 document.getElementById('ton-connect-btn').innerText = 'ربط محفظة TON';
+                alert('تم قطع ربط المحفظة بنجاح.');
+            } else {
+                userData.walletConnected = true;
+                userData.walletAddress = 'EQD...RealConnectedWallet...';
+                document.getElementById('wallet-status-badge').innerText = 'متصلة ✓';
+                document.getElementById('wallet-status-badge').style.color = 'var(--success-color)';
+                document.getElementById('ton-connect-btn').innerText = 'قطع ربط المحفظة';
+                alert('تم ربط محفظة TON بنجاح!');
             }
             updateUI();
-        });
+        }
 
-        async function toggleTonWallet() {
-            
+        function selectClicks(clicks, cost, element) {
+            element.parentElement.querySelectorAll('.click-btn').forEach(b => b.classList.remove('active'));
+            element.classList.add('active');
+            currentCampaign.clicks = clicks;
+            currentCampaign.cost = cost;
+            document.getElementById('cost-disp
