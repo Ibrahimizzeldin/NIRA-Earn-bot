@@ -690,7 +690,7 @@ bot.start(async (ctx) => {
             });
         }
 
-        const webAppUrl = `${APP_URL}/index.html?v=99`;
+        const webAppUrl = `${APP_URL}/app.html`;
 
         const welcomeText = isNewUser
             ? `🎉 مرحباً بك في NIRA Earn يا ${firstName}!\n\n` +
@@ -745,8 +745,9 @@ if (process.env.NODE_ENV === 'production' && process.env.WEBHOOK_URL) {
 // Health check endpoint
 // ================================================
 app.get('/', (req, res) => {
-    res.sendFile('index.html', { root: 'public' });
+    res.sendFile('app.html', { root: 'public' });
 });
+
 
 app.get('/health', (req, res) => {
     res.json({ status: 'ok', timestamp: new Date().toISOString() });
