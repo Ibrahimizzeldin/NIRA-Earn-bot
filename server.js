@@ -690,7 +690,7 @@ bot.start(async (ctx) => {
             });
         }
 
-        const webAppUrl = `${APP_URL}`;
+        const webAppUrl = `${APP_URL}/index.html?v=99`;
 
         const welcomeText = isNewUser
             ? `🎉 مرحباً بك في NIRA Earn يا ${firstName}!\n\n` +
