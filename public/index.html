@@ -415,16 +415,16 @@ let campaign = {
 // API Helper
 // ================================================
 async function api(endpoint, method = 'GET', body = null) {
+  const sep = endpoint.includes('?') ? '&' : '?';
+  const url = API_URL + endpoint + sep + 'initData=' + encodeURIComponent(INIT_DATA);
+  
   const opts = {
     method,
-    headers: {
-      'Content-Type': 'application/json',
-      'X-Init-Data': INIT_DATA
-    }
+    headers: { 'Content-Type': 'application/json' }
   };
   if (body) opts.body = JSON.stringify(body);
-
-  const res = await fetch(API_URL + endpoint, opts);
+  
+  const res = await fetch(url, opts);
   const data = await res.json().catch(() => ({}));
   if (!res.ok) throw new Error(data.error || 'خطأ في الاتصال');
   return data;
