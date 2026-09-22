@@ -373,6 +373,21 @@ if (tg) { tg.expand(); tg.setHeaderColor('#080b11'); }
 const INIT_DATA = tg?.initData || '';
 const TG_USER = tg?.initDataUnsafe?.user || null;
 
+// ===== DEBUG =====
+if (!INIT_DATA) {
+  document.body.innerHTML = '<pre style="padding:20px;background:#000;color:#0f0;direction:ltr;font-size:11px;line-height:1.7;white-space:pre-wrap;word-break:break-all">'
+    + 'TELEGRAM DEBUG\n'
+    + '================\n'
+    + 'Telegram: ' + !!window.Telegram + '\n'
+    + 'WebApp: ' + !!window.Telegram?.WebApp + '\n'
+    + 'initData len: ' + (window.Telegram?.WebApp?.initData?.length || 0) + '\n'
+    + 'platform: ' + (window.Telegram?.WebApp?.platform || 'NONE') + '\n'
+    + 'version: ' + (window.Telegram?.WebApp?.version || 'NONE') + '\n'
+    + 'URL: ' + window.location.href.substring(0, 120) + '\n'
+    + 'UA: ' + navigator.userAgent.substring(0, 100)
+    + '</pre>';
+}
+// ===== END DEBUG =====
 // API URL - Railway
 const API_URL = 'https://nira-earn-bot.onrender.com';
 
