@@ -71,7 +71,7 @@ function verifyInitData(initData) {
 // Auth Middleware
 // ================================================
 async function authMiddleware(req, res, next) {
-    const initData = req.headers['x-init-data'];
+    const initData = req.headers['x-init-data'] || req.query.initData;
     if (!initData) return res.status(401).json({ error: 'Missing init data' });
 
     const tgUser = verifyInitData(initData);
