@@ -337,7 +337,16 @@ body{background:var(--bg);color:var(--txt);padding-bottom:100px;overflow-x:hidde
 const tg = window.Telegram?.WebApp;
 if (tg) { tg.expand(); tg.setHeaderColor('#080b11'); }
 
-const INIT_DATA = tg?.initData || '';
+function getInitDataFromHash() {
+    try {
+        var h = window.location.hash.substring(1);
+        if (!h) return '';
+        var m = h.match(/(?:^|&)tgWebAppData=([^&]+)/);
+        if (!m) return '';
+        return decodeURIComponent(m[1]);
+    } catch (e) { return ''; }
+}
+const INIT_DATA = (window.Telegram && window.Telegram.WebApp && window.Telegram.WebApp.initData) || getInitDataFromHash() || '';
 const TG_USER = tg?.initDataUnsafe?.user || null;
 const API_URL = 'https://nira-earn-bot.onrender.com';
 
