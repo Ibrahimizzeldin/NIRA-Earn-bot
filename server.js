@@ -1,6 +1,8 @@
 // ================================================
 // NIRA Earn - Backend Server (Clean Version)
 // ================================================
+import dns from 'node:dns';
+dns.setDefaultResultOrder('ipv4first');
 import express from 'express';
 import cors from 'cors';
 import crypto from 'crypto';
