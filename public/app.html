@@ -1,0 +1,820 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no">
+<title>NIRA Earn</title>
+<script src="https://telegram.org/js/telegram-web-app.js"></script>
+<style>
+:root{--bg:#080b11;--card:#111722;--bd:#1e293b;--acc:#00ffcc;--blue:#2563eb;--txt:#fff;--mut:#8a9ba8;--ok:#10b981;--warn:#f59e0b;--err:#ef4444}
+*{box-sizing:border-box;margin:0;padding:0;font-family:'Segoe UI',system-ui,sans-serif;-webkit-tap-highlight-color:transparent}
+body{background:var(--bg);color:var(--txt);padding-bottom:100px;overflow-x:hidden}
+.wrap{padding:16px;max-width:480px;margin:auto}
+.nav{position:fixed;bottom:0;left:0;right:0;background:rgba(13,17,23,.98);backdrop-filter:blur(12px);display:flex;justify-content:space-around;padding:10px 0 16px;border-top:1px solid var(--bd);z-index:9999}
+.nav button{background:none;border:none;color:var(--mut);font-size:11px;display:flex;flex-direction:column;align-items:center;cursor:pointer;width:20%;transition:.2s}
+.nav button span{font-size:20px;margin-bottom:4px}
+.nav button.on{color:var(--acc);font-weight:600}
+.sec{display:none}
+.sec.on{display:block}
+.card{background:var(--card);border-radius:20px;padding:20px;margin-bottom:16px;border:1px solid var(--bd);box-shadow:0 8px 24px rgba(0,0,0,.2)}
+.bal{text-align:center;padding:10px 0;background:linear-gradient(180deg,#131d2e,#111722)}
+.bal b{font-size:34px;font-weight:800;background:linear-gradient(135deg,#00ffcc,#00bfff);-webkit-background-clip:text;-webkit-text-fill-color:transparent;margin:10px 0;display:block}
+.btn{background:var(--blue);color:#fff;border:none;padding:12px 20px;border-radius:12px;font-weight:600;width:100%;cursor:pointer;font-size:14px;transition:.2s;box-shadow:0 4px 12px rgba(37,99,235,.3);margin-top:8px;display:flex;justify-content:center;align-items:center;gap:8px}
+.btn:active{transform:scale(.97)}
+.btn.ok{background:var(--ok);box-shadow:0 4px 12px rgba(16,185,129,.3)}
+.btn.sc{background:#1e293b;color:#f3ba2f;box-shadow:none;border:1px solid #334155}
+.btn.ol{background:transparent;border:1px solid var(--blue);color:var(--blue);box-shadow:none}
+.btn.ds{background:#1e293b;color:var(--mut);cursor:not-allowed;box-shadow:none}
+.btn.sm{padding:8px 14px;font-size:12px;width:auto;margin-top:0}
+.li{display:flex;justify-content:space-between;align-items:center;padding:14px 0;border-bottom:1px solid var(--bd)}
+.li:last-child{border-bottom:none}
+.bg{background:#1e293b;color:#f3ba2f;padding:5px 10px;border-radius:8px;font-size:12px;font-weight:600;border:1px solid #334155}
+.bg.g{background:rgba(16,185,129,.15);color:var(--ok)}
+.bg.b{background:rgba(37,99,235,.2);color:#60a5fa}
+.st{display:flex;background:#1e293b;border-radius:12px;padding:4px;margin-bottom:16px}
+.st>div{flex:1;text-align:center;padding:10px;border-radius:10px;font-size:13px;font-weight:600;color:var(--mut);cursor:pointer;transition:.2s}
+.st>div.on{background:var(--blue);color:#fff}
+.mo{display:none;position:fixed;inset:0;background:rgba(0,0,0,.85);backdrop-filter:blur(5px);z-index:100000;justify-content:center;align-items:flex-end}
+.mo.on{display:flex}
+.mc{background:#111722;border:1px solid var(--bd);border-radius:24px 24px 0 0;width:100%;max-width:480px;padding:24px;max-height:90vh;overflow-y:auto}
+.fg{margin-bottom:16px}
+.fg label{display:block;font-size:13px;color:var(--mut);margin-bottom:8px;font-weight:500}
+.fc{width:100%;background:#080b11;border:1px solid var(--bd);color:#fff;padding:12px;border-radius:12px;font-size:14px;outline:none}
+.fc:focus{border-color:var(--acc)}
+.g2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.g3{display:grid;grid-template-columns:repeat(3,1fr);gap:10px}
+.g4{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+.tg{flex:1;background:#080b11;border:1px solid var(--bd);color:var(--mut);padding:10px;border-radius:10px;text-align:center;cursor:pointer;font-weight:600;font-size:13px;transition:.2s}
+.tg.on{background:rgba(0,255,204,.1);border-color:var(--acc);color:var(--acc)}
+.oc{background:#080b11;border:1px solid var(--bd);border-radius:12px;padding:12px;margin-bottom:8px;display:flex;justify-content:space-between;align-items:center;cursor:pointer}
+.oc.on{border-color:var(--ok);background:rgba(16,185,129,.05)}
+.ck{width:20px;height:20px;border-radius:50%;border:2px solid var(--bd);display:flex;justify-content:center;align-items:center;margin-right:10px}
+.ck.on{border-color:var(--ok);background:var(--ok)}
+.ck.on::after{content:'✓';color:#fff;font-size:12px}
+.pb{height:6px;background:#1e293b;border-radius:3px;overflow:hidden;margin-top:8px;width:100%}
+.pf{height:100%;background:linear-gradient(135deg,#00ffcc,#00bfff);border-radius:3px;transition:width .3s}
+.ad{display:flex;align-items:center;gap:12px;background:#0d121c;padding:12px;border-radius:14px;margin-bottom:10px;border:1px solid #1a2332}
+.ad .ic{width:40px;height:40px;border-radius:10px;background:#1e293b;display:flex;justify-content:center;align-items:center;font-size:20px}
+.ad .in{flex:1}
+.ad .in h4{font-size:14px;margin-bottom:2px}
+.lr{display:flex;justify-content:space-between;align-items:center;padding:10px 0;border-bottom:1px solid #1a2332;font-size:13px}
+.lr:last-child{border-bottom:none}
+.lr .rk{width:30px;text-align:center;font-weight:700;color:var(--mut)}
+.lr .us{flex:1;display:flex;align-items:center;gap:8px}
+.lr .av{width:28px;height:28px;border-radius:50%;background:#1e293b;display:flex;justify-content:center;align-items:center;font-size:12px}
+.lr .pt{width:60px;text-align:left;font-weight:700}
+.lr .pz{width:60px;text-align:left;color:var(--acc);font-weight:700}
+.lr.me{background:rgba(37,99,235,.1);border-radius:8px;padding:10px 8px}
+.toast{position:fixed;top:20px;left:50%;transform:translateX(-50%);background:var(--ok);color:#fff;padding:10px 20px;border-radius:10px;font-size:14px;font-weight:700;z-index:999999;opacity:0;transition:.3s;pointer-events:none;max-width:90%;text-align:center}
+.toast.on{opacity:1}
+.ld{display:none;position:fixed;inset:0;background:rgba(0,0,0,.9);z-index:999998;justify-content:center;align-items:center}
+.ld.on{display:flex}
+.sp{width:50px;height:50px;border:4px solid #1e293b;border-top-color:var(--acc);border-radius:50%;animation:spin 1s linear infinite}
+@keyframes spin{to{transform:rotate(360deg)}}
+.fb{display:flex;justify-content:space-between;align-items:center}
+.tm{color:var(--mut)}
+.ts{color:var(--ok)}
+.tw{color:var(--warn)}
+.ta{color:var(--acc)}
+.mt2{margin-top:8px}
+.mb2{margin-bottom:8px}
+</style>
+</head>
+<body>
+<div class="ld" id="loading"><div class="sp"></div></div>
+<div class="toast" id="toast"></div>
+<div class="wrap">
+  <!-- ============ HOME SECTION ============ -->
+<div id="home-sec" class="sec on">
+  <div class="card bal">
+    <p class="tm" style="font-size:13px">مرحباً، <span id="u-name" style="color:#fff;font-weight:600">...</span></p>
+    <b id="u-bal">0.0000 USDT</b>
+    <div class="g2">
+      <button class="btn ok" onclick="withdraw()">سحب الأرباح</button>
+      <button class="btn sc" onclick="openCampaign()">+ حملة إعلانية</button>
+    </div>
+  </div>
+  <div class="card">
+    <div class="fb mb2">
+      <h3 style="font-size:15px">📊 حملاتي الإعلانية</h3>
+      <span class="bg" id="camp-count">0</span>
+    </div>
+    <div id="camps"></div>
+  </div>
+  <div class="card">
+    <div class="fb mb2">
+      <h3 style="font-size:15px">📺 شبكات الإعلانات</h3>
+      <button class="btn ol sm" onclick="renderAds()">تحديث</button>
+    </div>
+    <div id="ads-box"></div>
+  </div>
+</div>
+
+<!-- ============ TASKS SECTION ============ -->
+<div id="tasks-sec" class="sec">
+  <h2 style="font-size:18px;font-weight:700;margin-bottom:8px">📋 المهام</h2>
+  <p class="tm mb2" style="font-size:13px">أكمل المهام اليومية لكسب USDT</p>
+  <div class="st">
+    <div class="on" onclick="subTab('tasks','tasks',this)">المهام</div>
+    <div onclick="subTab('tasks','coop',this)">التعاون</div>
+    <div onclick="subTab('tasks','amb',this)">السفراء</div>
+  </div>
+  <div id="tasks-box">
+    <div class="card" style="background:linear-gradient(135deg,#1e293b,#0f172a);border-color:var(--blue)">
+      <div class="fb mb2">
+        <span class="bg b">ترويج قناة أو بوت</span>
+        <span class="ta" style="font-size:12px">$0.30 / 100 نقرة</span>
+      </div>
+      <p class="tm" style="font-size:12px;margin-bottom:10px">احصل على أعضاء ومستخدمين حقيقيين</p>
+      <div class="g2">
+        <button class="btn sc" onclick="switchTab('tasks')">📋 مهامي</button>
+        <button class="btn" onclick="openCampaign()">+ ترويج رابط</button>
+      </div>
+    </div>
+    <h3 style="font-size:15px;color:var(--warn);margin-bottom:8px">🔥 المهام اليومية</h3>
+    <div class="card" id="daily-tasks"></div>
+    <h3 style="font-size:15px;color:var(--ok);margin:16px 0 8px">📋 مهام المبتدئين</h3>
+    <div class="card" id="begin-tasks"></div>
+  </div>
+</div>
+
+<!-- ============ COMPETITION SECTION ============ -->
+<div id="comp-sec" class="sec">
+  <h2 style="font-size:18px;font-weight:700;margin-bottom:8px">🏆 المسابقة</h2>
+  <p class="tm mb2" style="font-size:13px">نافس في لوحة الصدارة</p>
+  <div class="st">
+    <div class="on" onclick="subTab('comp','ads',this)">📺 الإعلانات $10</div>
+    <div onclick="subTab('comp','ref',this)">👥 الإحالات $5</div>
+    <div onclick="subTab('comp','amb',this)">👑 السفراء $5</div>
+  </div>
+  <div class="card" style="background:linear-gradient(180deg,#131d2e,#111722)">
+    <div class="fb mb2">
+      <span class="bg b" id="comp-title">ساحة الإعلانات</span>
+      <span class="tw" style="font-size:12px">تنتهي بعد: 17h 34m</span>
+    </div>
+    <p class="tm" style="font-size:13px;margin-bottom:12px" id="comp-desc">اكسب نقاط عن كل إعلان</p>
+    <b class="ta" style="font-size:26px;display:block" id="comp-prize">$ 10.00</b>
+  </div>
+  <div class="card">
+    <div class="fb mb2" style="font-size:12px;color:var(--mut)">
+      <span>المركز</span><span>اللاعب</span><span>النقاط</span><span>الجائزة</span>
+    </div>
+    <div id="lb-box"></div>
+  </div>
+</div>
+
+<!-- ============ REFERRALS SECTION ============ -->
+<div id="ref-sec" class="sec">
+  <h2 style="font-size:18px;font-weight:700;margin-bottom:8px">👥 الأصدقاء</h2>
+  <p class="tm mb2" style="font-size:13px">ادعُ أصدقاءك لمضاعفة أرباحك</p>
+  <div class="card" style="text-align:center">
+    <h3 style="font-size:15px;text-align:right;margin-bottom:12px">نظام الإحالة ذو المستويين</h3>
+    <div class="g3" style="margin-bottom:16px">
+      <div style="background:#080b11;padding:10px;border-radius:12px">
+        <p class="tm" style="font-size:11px">لكل صديق</p>
+        <p class="ts" style="font-weight:700;font-size:16px">+0.01</p>
+      </div>
+      <div style="background:#080b11;padding:10px;border-radius:12px">
+        <p class="tm" style="font-size:11px">المستوى 1</p>
+        <p style="color:#60a5fa;font-weight:700;font-size:16px">5%</p>
+      </div>
+      <div style="background:#080b11;padding:10px;border-radius:12px">
+        <p class="tm" style="font-size:11px">المستوى 2</p>
+        <p class="tw" style="font-weight:700;font-size:16px">3%</p>
+      </div>
+    </div>
+    <div style="background:#080b11;padding:12px;border-radius:12px;margin-bottom:16px">
+      <p class="tm" style="font-size:12px;margin-bottom:8px">رابط الإحالة</p>
+      <div class="fb" style="gap:8px">
+        <input type="text" id="ref-url" class="fc" readonly style="font-size:11px;padding:8px">
+        <button class="btn sm" onclick="copyRef()" style="padding:8px 12px">📋</button>
+      </div>
+    </div>
+    <button class="btn ok" onclick="shareRef()">📤 مشاركة عبر تيليجرام</button>
+  </div>
+  <div class="card">
+    <div class="fb mb2">
+      <h3 style="font-size:15px">قائمة الأصدقاء</h3>
+      <span class="bg" id="ref-total">0</span>
+    </div>
+    <div id="ref-list"></div>
+  </div>
+</div>
+
+<!-- ============ PROFILE SECTION ============ -->
+<div id="prof-sec" class="sec">
+  <h2 style="font-size:18px;font-weight:700;margin-bottom:8px">⚙️ الحساب</h2>
+  <div class="card">
+    <div class="fb mb2">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="width:50px;height:50px;background:var(--blue);border-radius:50%;display:flex;justify-content:center;align-items:center;font-size:24px">👤</div>
+        <div>
+          <h3 style="font-size:16px" id="p-name">...</h3>
+          <p class="tm" style="font-size:12px" id="p-user">@...</p>
+        </div>
+      </div>
+      <span class="bg g">أساسي x1.00</span>
+    </div>
+  </div>
+  <div class="card">
+    <h3 style="font-size:15px;margin-bottom:10px">🎟️ الرمز الترويجي</h3>
+    <div class="fb" style="gap:8px">
+      <input type="text" id="promo" class="fc" placeholder="أدخل الرمز" style="flex:1">
+      <button class="btn sm" onclick="activatePromo()">تفعيل</button>
+    </div>
+    <p class="ts mt2" style="font-size:11px;text-align:center" id="promo-stat">0/10 الرموز</p>
+  </div>
+  <h3 style="font-size:15px;margin-bottom:8px">الإعدادات</h3>
+  <div class="card" style="padding:0">
+    <div class="li" onclick="connectWallet()" style="cursor:pointer">
+      <div>
+        <strong>محفظة TON</strong>
+        <p class="tm" style="font-size:12px">اربط محفظتك للسحوبات</p>
+      </div>
+      <span class="bg" id="wallet-badge">غير متصلة</span>
+    </div>
+    <div class="li">
+      <div><strong>سجل المعاملات</strong><p class="tm" style="font-size:12px">الأرباح والسحوبات</p></div>
+      <span class="tm">›</span>
+    </div>
+    <div class="li">
+      <div><strong>اللغة</strong><p class="tm" style="font-size:12px">لغة الواجهة</p></div>
+      <span class="bg">AR العربية</span>
+    </div>
+    <div class="li">
+      <div><strong>الدعم الفني</strong><p class="tm" style="font-size:12px">@NIRAEarnSupport</p></div>
+      <span class="tm">›</span>
+    </div>
+  </div>
+</div>
+
+<!-- ============ CAMPAIGN MODAL ============ -->
+<div id="camp-mo" class="mo">
+  <div class="mc">
+    <div class="fb mb2">
+      <h3 style="font-size:18px;font-weight:700">إنشاء حملة إعلانية</h3>
+      <span style="font-size:20px;cursor:pointer;padding:4px" onclick="closeCampaign()">✕</span>
+    </div>
+    <div class="fg">
+      <label>هدف الحملة</label>
+      <div style="display:flex;gap:8px">
+        <div class="tg on" onclick="setTarget('channel',this)">📢 قناة</div>
+        <div class="tg" onclick="setTarget('mini_app',this)">⚡ Mini App</div>
+        <div class="tg" onclick="setTarget('bot',this)">🤖 Bot</div>
+      </div>
+    </div>
+    <div class="fg">
+      <label>رابط القناة أو البوت</label>
+      <input type="text" id="camp-url" class="fc" placeholder="t.me/channel_name">
+    </div>
+    <div class="fg">
+      <label>عدد النقرات</label>
+      <div class="g4">
+        <div class="tg on" onclick="setClicks(100,0.35,this)">100</div>
+        <div class="tg" onclick="setClicks(250,0.875,this)">250</div>
+        <div class="tg" onclick="setClicks(500,1.75,this)">500</div>
+        <div class="tg" onclick="setClicks(1000,3.5,this)">1000</div>
+      </div>
+    </div>
+    <div class="fg">
+      <label>طريقة الدفع</label>
+      <div class="g3">
+        <div class="tg" onclick="setPay('Stars',this)">⭐ Stars</div>
+        <div class="tg" onclick="setPay('GRAM',this)">💎 GRAM</div>
+        <div class="tg on" onclick="setPay('USDT',this)">💠 USDT</div>
+      </div>
+    </div>
+    <div class="fg">
+      <label>خيارات موصى بها</label>
+      <div class="oc" id="oc-ver" onclick="toggleOpt('ver')">
+        <div>
+          <h4 style="font-size:14px">مع التحقق ✓</h4>
+          <p style="font-size:11px;color:var(--mut)">التحقق عبر البوت</p>
+        </div>
+        <div style="text-align:left">
+          <div style="font-weight:700;color:var(--acc);font-size:13px">+$0.10</div>
+          <div class="ck" id="ck-ver"></div>
+        </div>
+      </div>
+      <div class="oc" id="oc-ban" onclick="toggleOpt('ban')">
+        <div>
+          <h4 style="font-size:14px">بانر في الرئيسية</h4>
+          <p style="font-size:11px;color:var(--mut)">عرض مميز</p>
+        </div>
+        <div style="text-align:left">
+          <div style="font-weight:700;color:var(--acc);font-size:13px">+$0.15</div>
+          <div class="ck" id="ck-ban"></div>
+        </div>
+      </div>
+    </div>
+    <div class="card" style="background:#080b11;padding:16px;margin-bottom:16px">
+      <div class="fb mb2">
+        <span class="tm" style="font-size:13px">تكلفة الحملة</span>
+        <span class="ta" style="font-size:16px;font-weight:700" id="camp-cost">0.3500 USDT</span>
+      </div>
+      <div class="fb">
+        <span class="tm" style="font-size:13px">رصيدك</span>
+        <span class="tw" style="font-size:14px;font-weight:700" id="camp-bal">0.0000 USDT</span>
+      </div>
+    </div>
+    <button class="btn ok" onclick="submitCampaign()">تأكيد ودفع الحملة</button>
+  </div>
+</div>
+</div>
+
+<!-- ============ NAV BAR ============ -->
+<div class="nav">
+  <button class="on" onclick="switchTab('home',this)"><span>🏠</span>الرئيسية</button>
+  <button onclick="switchTab('tasks',this)"><span>📋</span>المهام</button>
+  <button onclick="switchTab('comp',this)"><span>🏆</span>المسابقة</button>
+  <button onclick="switchTab('ref',this)"><span>👥</span>الأصدقاء</button>
+  <button onclick="switchTab('prof',this)"><span>⚙️</span>الحساب</button>
+</div>
+<script>
+// ================================================
+// NIRA Earn - Frontend Logic v2
+// ================================================
+const tg = window.Telegram?.WebApp;
+if (tg) { tg.expand(); tg.setHeaderColor('#080b11'); }
+
+const INIT_DATA = tg?.initData || '';
+const TG_USER = tg?.initDataUnsafe?.user || null;
+const API_URL = 'https://nira-earn-bot.onrender.com';
+
+let STATE = {
+  balance: 0,
+  walletConnected: false,
+  walletAddress: '',
+  referrals: 0,
+  adProgress: {},
+  completedTasks: [],
+  user: TG_USER
+};
+
+let campaign = {
+  target: 'channel',
+  clicks: 100,
+  baseCost: 0.35,
+  payMethod: 'USDT',
+  verification: false,
+  banner: false,
+  totalCost: 0.35
+};
+
+// ================================================
+// XHR API Helper (works with old WebViews)
+// ================================================
+function api(endpoint, method, body) {
+  method = method || 'GET';
+  return new Promise(function(resolve, reject) {
+    var xhr = new XMLHttpRequest();
+    xhr.open(method, API_URL + endpoint, true);
+    xhr.setRequestHeader('Content-Type', 'application/json');
+    if (INIT_DATA) xhr.setRequestHeader('X-Init-Data', INIT_DATA);
+    xhr.timeout = 60000;
+
+    xhr.onload = function() {
+      if (xhr.status >= 200 && xhr.status < 300) {
+        try { resolve(JSON.parse(xhr.responseText)); }
+        catch (e) { reject(new Error('Bad response')); }
+      } else {
+        try {
+          var err = JSON.parse(xhr.responseText);
+          reject(new Error(err.error || 'Error ' + xhr.status));
+        } catch (e) { reject(new Error('HTTP ' + xhr.status)); }
+      }
+    };
+    xhr.onerror = function() { reject(new Error('Network error')); };
+    xhr.ontimeout = function() { reject(new Error('Timeout')); };
+
+    xhr.send(body ? JSON.stringify(body) : null);
+  });
+}
+
+// ================================================
+// UI Helpers
+// ================================================
+function toast(msg, type) {
+  var el = document.getElementById('toast');
+  el.innerText = msg;
+  el.style.background = type === 'ok' ? '#10b981' : type === 'warn' ? '#f59e0b' : '#ef4444';
+  el.classList.add('on');
+  setTimeout(function() { el.classList.remove('on'); }, 3000);
+}
+
+function loading(show) {
+  document.getElementById('loading').classList.toggle('on', show);
+}
+
+function fmt(v) { return parseFloat(v).toFixed(4); }
+
+// ================================================
+// Navigation
+// ================================================
+function switchTab(name, el) {
+  document.querySelectorAll('.sec').forEach(function(s) { s.classList.remove('on'); });
+  document.querySelectorAll('.nav button').forEach(function(b) { b.classList.remove('on'); });
+  var sec = document.getElementById(name + '-sec');
+  if (sec) sec.classList.add('on');
+  if (el) el.classList.add('on');
+  window.scrollTo({ top: 0, behavior: 'smooth' });
+  if (name === 'comp') loadLeaderboard('ads');
+  if (name === 'ref') renderReferrals();
+}
+
+function subTab(parent, tab, el) {
+  el.parentElement.querySelectorAll('div').forEach(function(d) { d.classList.remove('on'); });
+  el.classList.add('on');
+  if (parent === 'comp') loadLeaderboard(tab);
+  if (parent === 'tasks' && (tab === 'coop' || tab === 'amb')) {
+    document.getElementById('tasks-box').innerHTML =
+      '<div class="card" style="text-align:center;padding:40px 20px">' +
+      '<h3 class="tm">' + (tab === 'coop' ? '🤝 التعاون' : '👑 السفراء') + '</h3>' +
+      '<p class="tm" style="font-size:13px;margin-top:10px">قريباً...</p></div>';
+  }
+}
+
+// ================================================
+// Load user
+// ================================================
+async function loadUser() {
+  try {
+    var data = await api('/api/me');
+    STATE.balance = parseFloat(data.balance);
+    STATE.walletConnected = data.wallet_connected;
+    STATE.walletAddress = data.wallet_address;
+    STATE.referrals = data.referrals_count;
+    STATE.adProgress = data.ad_progress || {};
+    STATE.completedTasks = data.completed_tasks || [];
+    if (data.first_name) STATE.user = { first_name: data.first_name, username: data.username };
+    renderAll();
+  } catch (e) {
+    console.error('loadUser:', e);
+    toast(e.message, 'err');
+  }
+}
+
+function renderAll() {
+  document.getElementById('u-bal').innerText = fmt(STATE.balance) + ' USDT';
+  if (STATE.user) {
+    document.getElementById('u-name').innerText = STATE.user.first_name || 'مستخدم';
+    document.getElementById('p-name').innerText = STATE.user.first_name || 'مستخدم';
+    document.getElementById('p-user').innerText = '@' + (STATE.user.username || 'user');
+  }
+  document.getElementById('camp-bal').innerText = fmt(STATE.balance) + ' USDT';
+  document.getElementById('ref-total').innerText = STATE.referrals;
+
+  var wb = document.getElementById('wallet-badge');
+  if (STATE.walletConnected) {
+    wb.innerText = 'متصلة ✓';
+    wb.className = 'bg g';
+  } else {
+    wb.innerText = 'غير متصلة';
+    wb.className = 'bg';
+  }
+  renderAds();
+  renderTasks();
+  renderCampaigns();
+  renderRefLink();
+}
+
+// ================================================
+// Ad Networks
+// ================================================
+var ADS = [
+  { id: 'adsgram', name: 'Adsgram', reward: 0.0005, limit: 100, icon: '📺', tag: 'Top Yield' },
+  { id: 'gigapub', name: 'Gigapub', reward: 0.0003, limit: 150, icon: '✨', tag: '' },
+  { id: 'tads', name: 'Tads', reward: 0.0002, limit: 60, icon: '📦', tag: '' },
+  { id: 'usl', name: 'USL', reward: 0.0002, limit: 80, icon: '🌐', tag: '' },
+  { id: 'monetix', name: 'Monetix', reward: 0.0002, limit: 80, icon: '📡', tag: '' }
+];
+
+function renderAds() {
+  var box = document.getElementById('ads-box');
+  box.innerHTML = ADS.map(function(ad) {
+    var prog = STATE.adProgress[ad.id] || 0;
+    var pct = Math.min(100, (prog / ad.limit) * 100);
+    return '<div class="ad">' +
+      '<div class="ic">' + ad.icon + '</div>' +
+      '<div class="in">' +
+      '<div class="fb"><h4>' + ad.name + '</h4>' +
+      (ad.tag ? '<span class="bg g" style="font-size:9px">' + ad.tag + '</span>' : '') + '</div>' +
+      '<div class="fb" style="margin-top:4px">' +
+      '<span class="ts" style="font-size:11px">+' + ad.reward.toFixed(4) + ' / view</span>' +
+      '<span class="tm" style="font-size:11px">' + prog + '/' + ad.limit + '</span></div>' +
+      '<div class="pb"><div class="pf" style="width:' + pct + '%"></div></div>' +
+      '</div>' +
+      '<button class="btn sm" onclick="watchAd(\'' + ad.id + '\')">مشاهدة</button>' +
+      '</div>';
+  }).join('');
+}
+
+async function watchAd(network) {
+  try {
+    loading(true);
+    await new Promise(function(r) { setTimeout(r, 2500); });
+    var data = await api('/api/ads/watch', 'POST', { network: network });
+    STATE.balance = parseFloat(data.new_balance);
+    toast('+' + data.reward.toFixed(4) + ' USDT', 'ok');
+    loading(false);
+    loadUser();
+  } catch (e) {
+    loading(false);
+    toast(e.message, 'err');
+  }
+}
+
+// ================================================
+// Tasks
+// ================================================
+function renderTasks() {
+  var daily = '<div class="li"><div style="flex:1">' +
+    '<h4 style="font-size:14px">عجلة الحظ اليومية</h4>' +
+    '<p class="tm" style="font-size:11px;margin-top:2px">قم بتدوير العجلة</p></div>' +
+    '<div style="text-align:left"><p class="ts" style="font-size:12px;font-weight:700">+حتى 0.20</p>' +
+    '<button class="btn sm ok" style="margin-top:4px" onclick="spinWheel()">تدوير</button></div></div>' +
+    '<div class="li"><div style="flex:1">' +
+    '<h4 style="font-size:14px">مكافأة تسجيل الدخول</h4>' +
+    '<p class="tm" style="font-size:11px;margin-top:2px">احصل على مكافأة يومية</p></div>' +
+    '<div style="text-align:left"><p class="ts" style="font-size:12px;font-weight:700">+0.0001</p>' +
+    '<button class="btn sm ok" style="margin-top:4px" onclick="completeTask(\'d2\')">استلام</button></div></div>';
+
+  var beginner = ['b1', 'b2', 'b3'].map(function(id) {
+    var titles = { b1: 'متابعة قناة NIRA Earn', b2: 'الانضمام للمحادثة', b3: 'دعوة 3 أصدقاء' };
+    var rewards = { b1: 0.0001, b2: 0.0001, b3: 0.0005 };
+    var done = STATE.completedTasks.indexOf(id) !== -1;
+    return '<div class="li"><div style="flex:1">' +
+      '<h4 style="font-size:14px">' + titles[id] + '</h4></div>' +
+      '<div style="text-align:left"><p class="ts" style="font-size:12px;font-weight:700">+' + rewards[id].toFixed(4) + '</p>' +
+      '<button class="btn sm ' + (done ? 'ds' : 'ok') + '" style="margin-top:4px" ' +
+      (done ? 'disabled' : '') + ' onclick="completeTask(\'' + id + '\')">' +
+      (done ? 'تم' : 'استلام') + '</button></div></div>';
+  }).join('');
+
+  document.getElementById('daily-tasks').innerHTML = daily;
+  document.getElementById('begin-tasks').innerHTML = beginner;
+}
+
+async function completeTask(id) {
+  if (STATE.completedTasks.indexOf(id) !== -1) return;
+  try {
+    loading(true);
+    var data = await api('/api/tasks/complete', 'POST', { task_id: id });
+    STATE.balance = parseFloat(data.new_balance);
+    STATE.completedTasks.push(id);
+    toast('+' + data.reward.toFixed(4) + ' USDT', 'ok');
+    loading(false);
+    renderAll();
+  } catch (e) {
+    loading(false);
+    toast(e.message, 'err');
+  }
+}
+
+async function spinWheel() {
+  try {
+    loading(true);
+    var data = await api('/api/tasks/spin', 'POST', {});
+    STATE.balance = parseFloat(data.new_balance);
+    toast('🎉 ربحت ' + data.reward.toFixed(4) + ' USDT!', 'ok');
+    loading(false);
+    loadUser();
+  } catch (e) {
+    loading(false);
+    toast(e.message, 'err');
+  }
+}
+
+// ================================================
+// Campaigns
+// ================================================
+async function renderCampaigns() {
+  try {
+    var camps = await api('/api/campaigns');
+    document.getElementById('camp-count').innerText = camps.length;
+    var box = document.getElementById('camps');
+    if (camps.length === 0) {
+      box.innerHTML = '<div style="text-align:center;padding:20px 0">' +
+        '<p class="tm" style="font-size:13px;margin-bottom:15px">ليس لديك حملات نشطة</p>' +
+        '<button class="btn ol" onclick="openCampaign()">+ إنشاء الحملة الأولى</button></div>';
+      return;
+    }
+    box.innerHTML = camps.map(function(c) {
+      return '<div style="background:#080b11;padding:12px;border-radius:12px;margin-top:8px;border:1px solid #1a2332">' +
+        '<div class="fb mb2"><span style="font-size:13px;font-weight:600;word-break:break-all">' + c.link + '</span>' +
+        '<span class="bg g">' + c.status + '</span></div>' +
+        '<div class="fb" style="font-size:11px;color:var(--mut)">' +
+        '<span>' + c.current_clicks + '/' + c.total_clicks + ' نقرة</span>' +
+        '<span class="tw">$' + parseFloat(c.cost).toFixed(2) + '</span></div></div>';
+    }).join('');
+  } catch (e) { console.error(e); }
+}
+
+function openCampaign() {
+  document.getElementById('camp-mo').classList.add('on');
+  updateCampCost();
+}
+function closeCampaign() {
+  document.getElementById('camp-mo').classList.remove('on');
+}
+function setTarget(t, el) {
+  el.parentElement.querySelectorAll('.tg').forEach(function(e) { e.classList.remove('on'); });
+  el.classList.add('on');
+  campaign.target = t;
+}
+function setClicks(c, cost, el) {
+  el.parentElement.querySelectorAll('.tg').forEach(function(e) { e.classList.remove('on'); });
+  el.classList.add('on');
+  campaign.clicks = c;
+  campaign.baseCost = cost;
+  updateCampCost();
+}
+function setPay(p, el) {
+  el.parentElement.querySelectorAll('.tg').forEach(function(e) { e.classList.remove('on'); });
+  el.classList.add('on');
+  campaign.payMethod = p;
+}
+function toggleOpt(o) {
+  if (o === 'ver') {
+    campaign.verification = !campaign.verification;
+    document.getElementById('ck-ver').classList.toggle('on', campaign.verification);
+    document.getElementById('oc-ver').classList.toggle('on', campaign.verification);
+  } else {
+    campaign.banner = !campaign.banner;
+    document.getElementById('ck-ban').classList.toggle('on', campaign.banner);
+    document.getElementById('oc-ban').classList.toggle('on', campaign.banner);
+  }
+  updateCampCost();
+}
+function updateCampCost() {
+  var total = campaign.baseCost;
+  if (campaign.verification) total += 0.10;
+  if (campaign.banner) total += 0.15;
+  campaign.totalCost = total;
+  document.getElementById('camp-cost').innerText = total.toFixed(4) + ' ' + campaign.payMethod;
+}
+async function submitCampaign() {
+  var link = document.getElementById('camp-url').value.trim();
+  if (!link) return toast('أدخل الرابط', 'warn');
+  if (STATE.balance < campaign.totalCost) return toast('رصيد غير كافٍ', 'err');
+  try {
+    loading(true);
+    await api('/api/campaigns/create', 'POST', {
+      link: link, target: campaign.target, clicks: campaign.clicks,
+      cost: campaign.totalCost, verification: campaign.verification, banner: campaign.banner
+    });
+    toast('تم إنشاء الحملة!', 'ok');
+    document.getElementById('camp-url').value = '';
+    closeCampaign();
+    loading(false);
+    loadUser();
+  } catch (e) {
+    loading(false);
+    toast(e.message, 'err');
+  }
+}
+
+// ================================================
+// Leaderboard
+// ================================================
+async function loadLeaderboard(type) {
+  try {
+    var url = type === 'ref' ? '/api/leaderboard/referrals' : '/api/leaderboard/balance';
+    var data = await api(url);
+    document.getElementById('comp-title').innerText =
+      type === 'ads' ? 'ساحة الإعلانات' : type === 'ref' ? 'الإحالات' : 'بطولة السفراء';
+    document.getElementById('comp-prize').innerText = type === 'ads' ? '$ 10.00' : '$ 5.00';
+
+    var myId = TG_USER ? TG_USER.id : null;
+    document.getElementById('lb-box').innerHTML = data.map(function(u, i) {
+      var isMe = u.telegram_id === myId;
+      var points = type === 'ref' ? (u.referrals_count || 0) : parseFloat(u.balance || 0).toFixed(4);
+      var prize = i === 0 ? 2.50 : i === 1 ? 1.50 : i === 2 ? 1.00 : 0;
+      return '<div class="lr ' + (isMe ? 'me' : '') + '">' +
+        '<div class="rk">' + (i < 3 ? ['🥇','🥈','🥉'][i] : i + 1) + '</div>' +
+        '<div class="us"><div class="av">' + (u.first_name || 'U')[0] + '</div>' +
+        '<span style="' + (isMe ? 'color:var(--acc);font-weight:700' : '') + '">' +
+        (u.first_name || u.username || 'User') + (isMe ? ' (أنت)' : '') + '</span></div>' +
+        '<div class="pt">' + points + '</div>' +
+        '<div class="pz">' + (prize > 0 ? '+' + prize.toFixed(2) : '-') + '</div></div>';
+    }).join('');
+  } catch (e) { console.error(e); }
+}
+
+// ================================================
+// Referrals
+// ================================================
+function renderRefLink() {
+  if (!TG_USER) return;
+  var link = 'https://t.me/nira_earn_official_bot/start?startapp=ref_' + TG_USER.id;
+  document.getElementById('ref-url').value = link;
+}
+function renderReferrals() {
+  renderRefLink();
+  document.getElementById('ref-total').innerText = STATE.referrals;
+  document.getElementById('ref-list').innerHTML = STATE.referrals === 0
+    ? '<p class="tm" style="font-size:13px;text-align:center;padding:10px 0">لم تدعُ أي صديق بعد</p>'
+    : '<p class="tm" style="font-size:13px;text-align:center;padding:10px 0">القائمة ستظهر قريباً</p>';
+}
+function copyRef() {
+  var input = document.getElementById('ref-url');
+  input.select();
+  input.setSelectionRange(0, 99999);
+  try {
+    navigator.clipboard.writeText(input.value).then(function() {
+      toast('تم النسخ!', 'ok');
+    }).catch(function() { toast(input.value, 'warn'); });
+  } catch (e) { toast(input.value, 'warn'); }
+}
+function shareRef() {
+  if (!TG_USER) return;
+  var link = 'https://t.me/nira_earn_official_bot/start?startapp=ref_' + TG_USER.id;
+  var text = encodeURIComponent('انضم إلي واربح USDT عبر NIRA Earn!');
+  window.open('https://t.me/share/url?url=' + encodeURIComponent(link) + '&text=' + text, '_blank');
+}
+
+// ================================================
+// Wallet & Promo
+// ================================================
+async function connectWallet() {
+  var address = prompt('أدخل عنوان محفظة TON:');
+  if (!address) return;
+  try {
+    loading(true);
+    await api('/api/wallet/connect', 'POST', { address: address });
+    STATE.walletConnected = true;
+    toast('تم ربط المحفظة!', 'ok');
+    loading(false);
+    loadUser();
+  } catch (e) {
+    loading(false);
+    toast(e.message, 'err');
+  }
+}
+
+async function activatePromo() {
+  var code = document.getElementById('promo').value.trim();
+  if (!code) return toast('أدخل الرمز', 'warn');
+  try {
+    loading(true);
+    var data = await api('/api/promo/activate', 'POST', { code: code });
+    STATE.balance = parseFloat(data.new_balance);
+    document.getElementById('promo').value = '';
+    toast('+' + data.reward.toFixed(4) + ' USDT', 'ok');
+    loading(false);
+    loadUser();
+  } catch (e) {
+    loading(false);
+    toast(e.message, 'err');
+  }
+}
+
+async function withdraw() {
+  if (!STATE.walletConnected) {
+    toast('اربط المحفظة أولاً', 'warn');
+    return switchTab('prof', document.querySelectorAll('.nav button')[4]);
+  }
+  if (STATE.balance < 0.5) return toast('الحد الأدنى 0.5 USDT', 'warn');
+  try {
+    loading(true);
+    await api('/api/withdraw', 'POST', {});
+    toast('تم إرسال طلب السحب', 'ok');
+    loading(false);
+    loadUser();
+  } catch (e) {
+    loading(false);
+    toast(e.message, 'err');
+  }
+}
+
+// ================================================
+// Init
+// ================================================
+window.addEventListener('DOMContentLoaded', function() {
+  loading(true);
+  loadUser().finally(function() { loading(false); });
+});
+
+// Expose globally
+window.switchTab = switchTab;
+window.subTab = subTab;
+window.watchAd = watchAd;
+window.completeTask = completeTask;
+window.spinWheel = spinWheel;
+window.openCampaign = openCampaign;
+window.closeCampaign = closeCampaign;
+window.setTarget = setTarget;
+window.setClicks = setClicks;
+window.setPay = setPay;
+window.toggleOpt = toggleOpt;
+window.submitCampaign = submitCampaign;
+window.copyRef = copyRef;
+window.shareRef = shareRef;
+window.connectWallet = connectWallet;
+window.activatePromo = activatePromo;
+window.withdraw = withdraw;
+window.renderAds = renderAds;
+</script>
+</body>
+      </html>
+      
