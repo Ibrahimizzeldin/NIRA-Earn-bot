@@ -27,7 +27,6 @@ export async function POST(req: NextRequest) {
   try {
     switch (body.action) {
       case 'state': {
-        await db.rpc('nira_settle_mining', { p_tid: tg.id });
         const [user, wizards, catalog, tx, rate, refs] = await Promise.all([
           db.from('nira_users').select('user_id,telegram_id,username,first_name,nira_balance,gas_balance,last_settled_at,referral_code').eq('telegram_id', tg.id).single(),
           db.from('nira_user_wizards').select('wizard_id,quantity').eq('telegram_id', tg.id),
@@ -78,4 +77,4 @@ export async function POST(req: NextRequest) {
   } catch (e: any) {
     return NextResponse.json({ error: 'server_error', detail: e?.message ?? 'unknown' }, { status: 500 });
   }
-          }
+}
