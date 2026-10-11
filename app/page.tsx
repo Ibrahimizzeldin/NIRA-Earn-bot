@@ -127,7 +127,7 @@ export default function Home(){
   );
   
   const niraShow = Number(state.user.nira_balance);
-  const gasShow  = Number(state.user.gas_balance);
+  const gasShow  = Math.max(0, Number(state.user.gas_balance) - preview.earned);
   const gasTotal = Number(state.user.gas_balance);
   const meterPct = gasTotal <= 0 ? 0 : Math.min(100, (preview.earned/gasTotal)*100);
   const owned = new Map<number,number>(state.wizards.map((w:any)=>[w.wizard_id,w.quantity]));
