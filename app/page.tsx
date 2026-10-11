@@ -3,38 +3,49 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 
 declare global { interface Window { Telegram?: any } }
 
-const T = {
+const WIZ_META: Record<number, { em:string, bg:string }> = {
+  1:  { em:'🧙', bg:'linear-gradient(135deg,#1e3a8a,#3b82f6)' },
+  2:  { em:'🧙', bg:'linear-gradient(135deg,#6d28d9,#a78bfa)' },
+  3:  { em:'🪄', bg:'linear-gradient(135deg,#3730a3,#6366f1)' },
+  4:  { em:'🔮', bg:'linear-gradient(135deg,#4c1d95,#7c3aed)' },
+  5:  { em:'✨', bg:'linear-gradient(135deg,#0891b2,#22d3ee)' },
+  6:  { em:'⚡', bg:'linear-gradient(135deg,#c2410c,#f97316)' },
+  7:  { em:'💀', bg:'linear-gradient(135deg,#7f1d1d,#dc2626)' },
+  8:  { em:'👑', bg:'linear-gradient(135deg,#a16207,#facc15)' },
+  9:  { em:'🌟', bg:'linear-gradient(135deg,#0f766e,#14b8a6)' },
+  10: { em:'🌙', bg:'linear-gradient(135deg,#be185d,#ec4899)' },
+  11: { em:'🌀', bg:'linear-gradient(135deg,#9a3412,#ea580c)' },
+  12: { em:'💎', bg:'linear-gradient(135deg,#475569,#cbd5e1)' },
+};
+
+const T:any = {
   ar: {
-    nira:'نيرا', gas:'غاز', daily:'الدخل اليومي', balance:'رصيدك',
-    collect:'اجمع', settle:'تسوية', refresh:'تحديث',
+    nira:'نيرا', gas:'غاز', daily:'الدخل اليومي', collect:'اجمع', refresh:'تحديث',
     mine:'التعدين', shop:'الشخصيات', gasShop:'شراء غاز',
-    deposit:'إيداع', withdraw:'سحب', partners:'الإحالة', profile:'حسابي',
-    rate:'المعدل اليومي', perHour:'في الساعة', noGas:'نفد الغاز',
-    buyGas:'شراء غاز', owned:'مملوكة', cost:'التكلفة', income:'الدخل',
-    buy1:'شراء ×1', buy10:'×10', history:'السجل',
-    userID:'معرّف المستخدم', refLink:'رابط الإحالة', copy:'نسخ',
-    refCount:'عدد المدعوين', refEarn:'أرباح الإحالة',
-    noTx:'لا توجد معاملات بعد', openTelegram:'افتح من داخل Telegram',
-    loading:'جاري التحميل…', ok:'تم', welcome:'مرحبًا',
-    method:'الطريقة', amount:'المبلغ', wallet:'العنوان', submit:'إرسال',
-    depositNote:'أرسل المبلغ إلى العنوان المحدد ثم أرسل بيانات العملية.',
-    withdrawNote:'سيُعالج السحب خلال 24-48 ساعة.',
+    deposit:'إيداع', withdraw:'سحب', partners:'إحالة', profile:'حسابي',
+    perHour:'/ساعة', cost:'التكلفة', income:'الدخل اليومي',
+    buy1:'شراء', buy10:'×10', history:'السجل', userID:'المعرّف',
+    refLink:'رابط الإحالة', copy:'نسخ', refCount:'المدعوون', refEarn:'أرباح الإحالة',
+    noTx:'لا توجد معاملات', open:'افتح من داخل Telegram', loading:'تحميل…',
+    ok:'تم', submit:'إرسال', amount:'المبلغ', wallet:'العنوان', method:'العملة',
+    depositNote:'أرسل المبلغ ثم أدخل بيانات العملية.',
+    withdrawNote:'المعالجة خلال 24-48 ساعة.',
+    noOwned:'لا تملك شخصيات بعد',
+    buy:'شراء', out:'نفد الغاز',
   },
   en: {
-    nira:'NIRA', gas:'Gas', daily:'Daily income', balance:'Your balance',
-    collect:'Collect', settle:'Settle', refresh:'Refresh',
+    nira:'NIRA', gas:'Gas', daily:'Daily income', collect:'Collect', refresh:'Refresh',
     mine:'Mining', shop:'Wizards', gasShop:'Buy Gas',
     deposit:'Deposit', withdraw:'Withdraw', partners:'Partners', profile:'Profile',
-    rate:'Daily rate', perHour:'per hour', noGas:'Out of gas',
-    buyGas:'Buy Gas', owned:'owned', cost:'Cost', income:'Income',
-    buy1:'Buy ×1', buy10:'×10', history:'History',
-    userID:'User ID', refLink:'Referral link', copy:'Copy',
-    refCount:'Referrals', refEarn:'Referral earnings',
-    noTx:'No transactions yet', openTelegram:'Open from Telegram',
-    loading:'Loading…', ok:'Done', welcome:'Welcome',
-    method:'Method', amount:'Amount', wallet:'Address', submit:'Submit',
-    depositNote:'Send the amount to the address, then submit your tx details.',
-    withdrawNote:'Withdrawals are processed within 24-48 hours.',
+    perHour:'/h', cost:'Cost', income:'Daily income',
+    buy1:'Buy', buy10:'×10', history:'History', userID:'User ID',
+    refLink:'Referral link', copy:'Copy', refCount:'Referrals', refEarn:'Ref earnings',
+    noTx:'No transactions', open:'Open from Telegram', loading:'Loading…',
+    ok:'Done', submit:'Submit', amount:'Amount', wallet:'Address', method:'Method',
+    depositNote:'Send then submit tx details.',
+    withdrawNote:'Processed within 24-48h.',
+    noOwned:'No wizards owned yet',
+    buy:'Buy', out:'Out of gas',
   },
 };
 
@@ -43,27 +54,16 @@ const GAS_PKG = [
   { i:2, nira:1000, gas:5000 },
   { i:3, nira:5000, gas:25000 },
 ];
+const DEP = ['TRX','BNB','DOGE','LTC','SOL','USDT_BEP20','USDT_POLYGON','USDT_SOL'];
+const WD  = ['USDT_BEP20','USDT_TRC20','BNB','TRX'];
 
-const DEPOSIT_METHODS = [
-  { id:'TRX',   name:'TRX' },
-  { id:'BNB',   name:'BNB (BEP20)' },
-  { id:'DOGE',  name:'DOGE' },
-  { id:'LTC',   name:'LTC' },
-  { id:'SOL',   name:'SOL' },
-  { id:'USDT_BEP20', name:'USDT (BEP20)' },
-  { id:'USDT_POLYGON', name:'USDT (Polygon)' },
-  { id:'USDT_SOL', name:'USDT (Solana)' },
-];
-
-const WD_METHODS = ['USDT_BEP20','USDT_TRC20','BNB','TRX'];
-
-function fmt(n:any, d=4){ const v=Number(n); if(!isFinite(v)) return '0';
+function fmt(n:any, d=2){ const v=Number(n); if(!isFinite(v)) return '0';
   return v.toLocaleString(undefined,{maximumFractionDigits:d}); }
 
 export default function Home(){
   const [initData, setInitData] = useState('');
   const [lang, setLang] = useState<'ar'|'en'>('ar');
-  const [tab, setTab] = useState('mine');
+  const [tab, setTab] = useState<'mine'|'deposit'|'withdraw'|'partners'>('mine');
   const [state, setState] = useState<any>(null);
   const [busy, setBusy] = useState(false);
   const [toast, setToast] = useState('');
@@ -80,17 +80,17 @@ export default function Home(){
   useEffect(()=>{ document.documentElement.lang = lang;
     document.documentElement.dir = lang==='ar'?'rtl':'ltr'; },[lang]);
 
-  const show = (m:string)=>{ setToast(m); setTimeout(()=>setToast(''),2600); };
+  const show = (m:string)=>{ setToast(m); setTimeout(()=>setToast(''),2200); };
 
   const call = useCallback(async (payload:any)=>{
-    if(!initData) throw new Error(t.openTelegram);
+    if(!initData) throw new Error(t.open);
     const r = await fetch('/api/action',{ method:'POST',
       headers:{'Content-Type':'application/json'},
       body: JSON.stringify({ initData, ...payload })});
     const j = await r.json();
     if(!r.ok) throw new Error(j.error || 'error');
     return j;
-  },[initData,t.openTelegram]);
+  },[initData,t.open]);
 
   const refresh = useCallback(async ()=>{
     if(!initData) return;
@@ -114,174 +114,162 @@ export default function Home(){
     catch(e:any){ show(e.message); } finally{ setBusy(false); }
   };
 
-  if(!state) return (<div className="container">
-    <div className="topbar"><h1>NIRA Earn</h1>
-      <button className="lang-btn" onClick={()=>setLang(lang==='ar'?'en':'ar')}>
-        {lang==='ar'?'EN':'ع'}</button></div>
-    <div className="muted">{initData? t.loading : t.openTelegram}</div>
-    {toast && <div className="toast">{toast}</div>}
-  </div>);
-
-  const niraShow = Number(state.user.nira_balance) + preview.earned;
+  if(!state) return (
+    <div className="container">
+      <div className="top">
+        <div className="balbox"><span className="flame" /><span className="v">—</span></div>
+        <button className="iconbtn" onClick={()=>setLang(lang==='ar'?'en':'ar')}>
+          {lang==='ar'?'EN':'ع'}</button>
+      </div>
+      <div className="muted">{initData? t.loading : t.open}</div>
+      {toast && <div className="toast">{toast}</div>}
+    </div>
+  );
+    const niraShow = Number(state.user.nira_balance) + preview.earned;
   const gasShow  = Math.max(0, Number(state.user.gas_balance) - preview.earned);
+  const gasTotal = Number(state.user.gas_balance);
+  const meterPct = gasTotal <= 0 ? 0 : Math.min(100, (preview.earned/gasTotal)*100);
   const owned = new Map<number,number>(state.wizards.map((w:any)=>[w.wizard_id,w.quantity]));
-  const meterPct = Math.min(100, Number(state.user.gas_balance) <= 0 ? 0 :
-    (preview.earned / Number(state.user.gas_balance)) * 100);
+  const ownedWizards = state.catalog.filter((c:any)=>(owned.get(c.wizard_id) ?? 0) > 0);
 
-  const TABS = [
-    { k:'mine', label:t.mine },
-    { k:'shop', label:t.shop },
-    { k:'gasShop', label:t.gasShop },
-    { k:'deposit', label:t.deposit },
+  const NAV = [
+    { k:'mine',     label:t.mine },
+    { k:'deposit',  label:t.deposit },
     { k:'withdraw', label:t.withdraw },
     { k:'partners', label:t.partners },
-    { k:'profile', label:t.profile },
   ];
 
   return (
   <div className="container">
-    <div className="topbar">
-      <h1>NIRA Earn <span className="pill">#{state.user.user_id}</span></h1>
-      <button className="lang-btn" onClick={()=>setLang(lang==='ar'?'en':'ar')}>
+    {/* top: balance + lang + profile */}
+    <div className="top">
+      <div className="balbox">
+        <span className="flame" />
+        <span className="v count">{fmt(niraShow)}</span>
+      </div>
+      <button className="iconbtn" onClick={()=>setLang(lang==='ar'?'en':'ar')}>
         {lang==='ar'?'EN':'ع'}</button>
+      <button className="iconbtn" onClick={()=>setTab('profile' as any)}>{t.profile}</button>
     </div>
 
-    <div className="balances">
-      <div className="card">
-        <div className="label">{t.nira}</div>
-        <div className="val count">{fmt(niraShow)}</div>
-      </div>
-      <div className="card">
-        <div className="label">{t.gas}</div>
-        <div className="val count">{fmt(gasShow)}</div>
-        <div className="meter"><div style={{width: meterPct+'%'}} /></div>
-      </div>
-    </div>
-
-    <div className="tabs">
-      {TABS.map(x=>(
-        <button key={x.k} className={tab===x.k?'active':''} onClick={()=>setTab(x.k)}>{x.label}</button>
+    {/* 4-button nav */}
+    <div className="nav">
+      {NAV.map(x=>(
+        <button key={x.k} className={tab===x.k?'active':''} onClick={()=>setTab(x.k as any)}>
+          {x.label}
+        </button>
       ))}
     </div>
 
     {tab==='mine' && (
       <>
-        <div className="card">
-          <div className="label">{t.daily}</div>
-          <div className="val count">{fmt(state.daily_rate)} {t.nira}</div>
-          <div className="muted">≈ {fmt(preview.rate*3600,6)} {t.perHour}</div>
-          <div style={{marginTop:10}}>
-            <div className="label">{t.collect} +{fmt(preview.earned)} {t.nira}</div>
+        {/* daily income bar */}
+        <div className="barwrap">
+          <div className="barhead">
+            <span>{t.daily}</span>
+            <span className="num">{fmt(state.daily_rate,0)} {t.nira}</span>
           </div>
+          <div className="bar orange"><div style={{width: meterPct+'%'}} /></div>
         </div>
-        <div style={{marginTop:10}}>
-          <button className="btn-collect" disabled={busy || preview.earned<=0}
-            onClick={()=>action({action:'settle'}, t.ok)}>
-            {t.collect}
-          </button>
-        </div>
-        <div style={{marginTop:10, display:'flex', gap:8}}>
-          <button className="btn2" disabled={busy} onClick={refresh}>{t.refresh}</button>
-        </div>
-        <Section title={t.history}>
-          <div className="card" style={{padding:6}}>
-            {state.transactions.length===0 ? <div className="tx muted">{t.noTx}</div> :
-              state.transactions.slice(0,15).map((x:any)=>(
-              <div className="tx" key={x.id}>
-                <div><div style={{fontWeight:600}}>{x.type}</div>
-                  <div className="muted">{new Date(x.created_at).toLocaleString()}</div></div>
-                <div style={{textAlign:'end'}}>
-                  {Number(x.amount_nira)!==0 && <div className={Number(x.amount_nira)>=0?'pos':'neg'}>
-                    {Number(x.amount_nira)>0?'+':''}{fmt(x.amount_nira)} {t.nira}</div>}
-                  {Number(x.amount_gas)!==0 && <div className={Number(x.amount_gas)>=0?'pos':'neg'}>
-                    {Number(x.amount_gas)>0?'+':''}{fmt(x.amount_gas)} {t.gas}</div>}
+
+        {/* hero + owned grid */}
+        <div className="mid">
+          <div className="hero">
+            <div className="art">{ownedWizards[0] ? WIZ_META[ownedWizards[0].wizard_id]?.em : '🧙'}</div>
+            <div className="acc count">{fmt(preview.earned,4)}</div>
+            <button className="collect" disabled={busy || preview.earned<=0}
+              onClick={()=>action({action:'settle'}, t.ok)}>
+              {t.collect}
+            </button>
+          </div>
+
+          <div className="owned">
+            {ownedWizards.length === 0 ? (
+              <div className="empty">{t.noOwned}</div>
+            ) : ownedWizards.map((c:any)=>(
+              <div className="cell" key={c.wizard_id}>
+                <div className="em" style={{background:WIZ_META[c.wizard_id]?.bg,
+                  borderRadius:8, width:32, height:32, display:'flex',
+                  alignItems:'center', justifyContent:'center'}}>
+                  {WIZ_META[c.wizard_id]?.em}
                 </div>
+                <div className="q">×{owned.get(c.wizard_id)}</div>
               </div>
             ))}
           </div>
-        </Section>
-      </>
-    )}
+        </div>
 
-    {tab==='shop' && (
-      <Section title={t.shop}>
-        <div className="grid">
-          {state.catalog.map((c:any)=>{
-            const q = owned.get(c.wizard_id) ?? 0;
-            const canBuy = Number(state.user.gas_balance) >= Number(c.gas_cost);
+        {/* gas bar */}
+        <div className="barwrap gaswrap">
+          <div className="barhead">
+            <span>{t.gas}</span>
+            <span className="num">{fmt(gasShow,0)}</span>
+          </div>
+          <div className="bar purple"><div style={{width: (100-meterPct)+'%'}} /></div>
+        </div>
+
+        {/* 3 gas cards */}
+        <div className="gasrow">
+          {GAS_PKG.map(p=>{
+            const can = Number(state.user.nira_balance) >= p.nira;
             return (
-              <div className="card" key={c.wizard_id}>
-                <div style={{fontWeight:700}}>{c.name} {q? <span className="pill">×{q}</span> : null}</div>
-                <div className="muted">{t.cost}: {fmt(c.gas_cost)} {t.gas}</div>
-                <div className="muted">{t.income}: {fmt(c.daily_income)} {t.nira}</div>
-                <div style={{display:'flex', gap:6, marginTop:8}}>
-                  <button disabled={busy || !canBuy}
-                    onClick={()=>action({action:'buy_wizard', wizard_id:c.wizard_id, quantity:1}, t.ok)}>
-                    {t.buy1}</button>
-                  <button className="btn2" disabled={busy || Number(state.user.gas_balance) < Number(c.gas_cost)*10}
-                    onClick={()=>action({action:'buy_wizard', wizard_id:c.wizard_id, quantity:10}, t.ok)}>
-                    {t.buy10}</button>
-                </div>
-              </div>
+              <button key={p.i} className={'gascard'+(can?'':' disabled')}
+                disabled={busy || !can}
+                onClick={()=>action({action:'buy_gas', package_index:p.i}, t.ok)}>
+                <span className="orb" />
+                <span className="pg">+{fmt(p.gas,0)}</span>
+                <span className="pr"><span className="flame" />{fmt(p.nira,0)}</span>
+              </button>
             );
           })}
         </div>
-      </Section>
-    )}
 
-    {tab==='gasShop' && (
-      <Section title={t.gasShop}>
-        <div className="grid">
-          {GAS_PKG.map(p=>(
-            <button key={p.i} disabled={busy || Number(state.user.nira_balance) < p.nira}
-              onClick={()=>action({action:'buy_gas', package_index:p.i}, t.ok)}>
-              {p.nira} {t.nira} ← {p.gas} {t.gas}
-            </button>
+        {/* 12-wizard catalog: 2 per row */}
+        <div className="catrow">
+          {state.catalog.map((c:any)=>(
+            <WizardCard key={c.wizard_id} c={c} owned={owned.get(c.wizard_id) ?? 0}
+              gas={Number(state.user.gas_balance)} busy={busy}
+              t={t} onBuy={(qty:number)=>action({action:'buy_wizard', wizard_id:c.wizard_id, quantity:qty}, t.ok)} />
           ))}
         </div>
-      </Section>
+      </>
     )}
 
-    {tab==='deposit' && <DepositForm call={call} refresh={refresh} t={t} show={show} busy={busy} setBusy={setBusy} />}
-
-    {tab==='withdraw' && <WithdrawForm call={call} refresh={refresh} t={t} show={show} busy={busy} setBusy={setBusy} nira={Number(state.user.nira_balance)} />}
-
-    {tab==='partners' && (
-      <Section title={t.partners}>
-        <div className="card">
-          <div className="label">{t.refLink}</div>
-          <div style={{display:'flex',gap:6,marginTop:6}}>
-            <input readOnly value={state.user.referral_code ? `https://t.me/${window?.Telegram?.WebApp?.initDataUnsafe?.user?.id?'':'YOURBOT'}?startapp=${state.user.referral_code}` : ''} />
-            <button className="btn2" onClick={()=>{
-              const code = state.user.referral_code;
-              const url = `https://t.me/?startapp=${code}`;
-              try{ navigator.clipboard.writeText(url); show(t.ok); }catch{}
-            }}>{t.copy}</button>
-          </div>
-          <div className="muted" style={{marginTop:8}}>{t.refCount}: {state.referrals.length}</div>
-          <div className="muted">{t.refEarn}: {fmt(state.referrals.reduce((s:number,r:any)=>s+Number(r.total_nira_earned||0),0))} {t.nira}</div>
-        </div>
-      </Section>
-    )}
-
-    {tab==='profile' && (
-      <Section title={t.profile}>
-        <div className="card">
-          <div className="muted">{t.userID}: #{state.user.user_id}</div>
-          <div className="muted" style={{marginTop:6}}>@{state.user.username ?? '—'}</div>
-          <div className="muted" style={{marginTop:6}}>{t.nira}: {fmt(state.user.nira_balance)}</div>
-          <div className="muted">{t.gas}: {fmt(state.user.gas_balance)}</div>
-        </div>
-      </Section>
-    )}
+    {tab==='deposit' as any && <DepositForm call={call} refresh={refresh} t={t} show={show} busy={busy} setBusy={setBusy} />}
+    {tab==='withdraw' as any && <WithdrawForm call={call} refresh={refresh} t={t} show={show} busy={busy} setBusy={setBusy} nira={Number(state.user.nira_balance)} />}
+    {tab==='partners' as any && <PartnersBlock state={state} t={t} show={show} />}
+    {(tab as any)==='profile' && <ProfileBlock state={state} t={t} />}
 
     {toast && <div className="toast">{toast}</div>}
   </div>
   );
-}
+                }
 
-function Section({title, children}:{title:string, children:any}){
-  return <div className="section"><h2>{title}</h2>{children}</div>;
+function WizardCard({c, owned, gas, busy, t, onBuy}:any){
+  const meta = WIZ_META[c.wizard_id] || { em:'🧙', bg:'#1f2748' };
+  const ratePct = Math.round(Number(c.daily_rate)*100);
+  const can1 = gas >= Number(c.gas_cost);
+  const can10 = gas >= Number(c.gas_cost)*10;
+  return (
+    <div className="wcard">
+      <div className="top2">
+        <div className="em2" style={{background:meta.bg}}>{meta.em}</div>
+        <div style={{textAlign:'end'}}>
+          <div className="rt">{ratePct}%</div>
+          {owned > 0 && <div className="own">×{owned}</div>}
+        </div>
+      </div>
+      <div className="nm">{c.name}</div>
+      <div className="cost">
+        <span><span className="flame" />{fmt(c.gas_cost,0)}</span>
+        <span>+{fmt(c.daily_income,0)}</span>
+      </div>
+      <div className="buy">
+        <button className="b1" disabled={busy || !can1} onClick={()=>onBuy(1)}>{t.buy1}</button>
+        <button className="b2" disabled={busy || !can10} onClick={()=>onBuy(10)}>{t.buy10}</button>
+      </div>
+    </div>
+  );
 }
 
 function DepositForm({call,refresh,t,show,busy,setBusy}:any){
@@ -289,26 +277,32 @@ function DepositForm({call,refresh,t,show,busy,setBusy}:any){
   const [usd,setUsd]=useState('');
   const [tx,setTx]=useState('');
   return (
-    <Section title={t.deposit}>
-      <div className="card">
-        <div className="muted">{t.depositNote}</div>
-        <select value={method} onChange={(e)=>setMethod(e.target.value)} style={{marginTop:8}}>
-          {DEPOSIT_METHODS.map(m=><option key={m.id} value={m.id}>{m.name}</option>)}
+    <div className="card">
+      <div className="title">{t.deposit}</div>
+      <div className="muted" style={{marginBottom:10}}>{t.depositNote}</div>
+      <div className="field">
+        <label>{t.method}</label>
+        <select value={method} onChange={(e)=>setMethod(e.target.value)}>
+          {DEP.map(m=><option key={m} value={m}>{m}</option>)}
         </select>
-        <div className="input-row">
-          <input placeholder="USD" value={usd} onChange={e=>setUsd(e.target.value)} inputMode="decimal" />
-          <input placeholder="TX Hash" value={tx} onChange={e=>setTx(e.target.value)} />
-        </div>
-        <button disabled={busy || !usd || Number(usd)<=0}
-          onClick={async()=>{
-            setBusy(true);
-            try{ await call({action:'deposit_request', method, amount_usd:Number(usd),
-              amount_nira:Number(usd)*5000, tx_hash:tx}); await refresh(); show(t.ok);
-              setUsd(''); setTx(''); }
-            catch(e:any){ show(e.message); } finally{ setBusy(false); }
-          }}>{t.submit}</button>
       </div>
-    </Section>
+      <div className="field">
+        <label>USD</label>
+        <input placeholder="0.00" value={usd} onChange={e=>setUsd(e.target.value)} inputMode="decimal" />
+      </div>
+      <div className="field">
+        <label>TX Hash</label>
+        <input placeholder="—" value={tx} onChange={e=>setTx(e.target.value)} />
+      </div>
+      <button className="btnblue" disabled={busy || !usd || Number(usd)<=0}
+        onClick={async()=>{
+          setBusy(true);
+          try{ await call({action:'deposit_request', method, amount_usd:Number(usd),
+            amount_nira:Number(usd)*5000, tx_hash:tx}); await refresh(); show(t.ok);
+            setUsd(''); setTx(''); }
+          catch(e:any){ show(e.message); } finally{ setBusy(false); }
+        }}>{t.submit}</button>
+    </div>
   );
 }
 
@@ -317,22 +311,63 @@ function WithdrawForm({call,refresh,t,show,busy,setBusy,nira}:any){
   const [amt,setAmt]=useState('');
   const [w,setW]=useState('');
   return (
-    <Section title={t.withdraw}>
-      <div className="card">
-        <div className="muted">{t.withdrawNote}</div>
-        <select value={method} onChange={(e)=>setMethod(e.target.value)} style={{marginTop:8}}>
-          {WD_METHODS.map(m=><option key={m} value={m}>{m}</option>)}
+    <div className="card">
+      <div className="title">{t.withdraw}</div>
+      <div className="muted" style={{marginBottom:10}}>{t.withdrawNote}</div>
+      <div className="field">
+        <label>{t.method}</label>
+        <select value={method} onChange={(e)=>setMethod(e.target.value)}>
+          {WD.map(m=><option key={m} value={m}>{m}</option>)}
         </select>
-        <input placeholder={t.amount} value={amt} onChange={e=>setAmt(e.target.value)} inputMode="decimal" />
-        <input placeholder={t.wallet} value={w} onChange={e=>setW(e.target.value)} />
-        <button disabled={busy || !amt || Number(amt)<=0 || Number(amt)>nira || !w}
-          onClick={async()=>{
-            setBusy(true);
-            try{ await call({action:'withdraw_request', method, amount_nira:Number(amt),
-              wallet_address:w}); await refresh(); show(t.ok); setAmt(''); setW(''); }
-            catch(e:any){ show(e.message); } finally{ setBusy(false); }
-          }}>{t.submit}</button>
       </div>
-    </Section>
+      <div className="field">
+        <label>{t.amount}</label>
+        <input placeholder="0" value={amt} onChange={e=>setAmt(e.target.value)} inputMode="decimal" />
+      </div>
+      <div className="field">
+        <label>{t.wallet}</label>
+        <input placeholder="—" value={w} onChange={e=>setW(e.target.value)} />
+      </div>
+      <button className="btnblue" disabled={busy || !amt || Number(amt)<=0 || Number(amt)>nira || !w}
+        onClick={async()=>{
+          setBusy(true);
+          try{ await call({action:'withdraw_request', method, amount_nira:Number(amt),
+            wallet_address:w}); await refresh(); show(t.ok); setAmt(''); setW(''); }
+          catch(e:any){ show(e.message); } finally{ setBusy(false); }
+        }}>{t.submit}</button>
+    </div>
   );
-    }
+}
+
+function PartnersBlock({state,t,show}:any){
+  const code = state.user.referral_code || '';
+  const url  = `https://t.me/?startapp=${code}`;
+  const earned = state.referrals.reduce((s:number,r:any)=>s+Number(r.total_nira_earned||0),0);
+  return (
+    <div className="card">
+      <div className="title">{t.partners}</div>
+      <div className="field">
+        <label>{t.refLink}</label>
+        <input readOnly value={url} style={{fontSize:11}} />
+      </div>
+      <button className="btnblue" style={{marginBottom:10}}
+        onClick={()=>{ try{ navigator.clipboard.writeText(url); show(t.ok); }catch{} }}>
+        {t.copy}
+      </button>
+      <div className="muted">{t.refCount}: {state.referrals.length}</div>
+      <div className="muted">{t.refEarn}: {fmt(earned)} {t.nira}</div>
+    </div>
+  );
+}
+
+function ProfileBlock({state,t}:any){
+  return (
+    <div className="card">
+      <div className="title">{t.profile}</div>
+      <div className="muted">{t.userID}: #{state.user.user_id}</div>
+      <div className="muted">@{state.user.username ?? '—'}</div>
+      <div className="muted" style={{marginTop:8}}>{t.nira}: {fmt(state.user.nira_balance)}</div>
+      <div className="muted">{t.gas}: {fmt(state.user.gas_balance)}</div>
+    </div>
+  );
+          }
