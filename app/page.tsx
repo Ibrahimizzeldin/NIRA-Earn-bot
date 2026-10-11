@@ -126,8 +126,8 @@ export default function Home(){
     </div>
   );
   
-  const niraShow = Number(state.user.nira_balance) + preview.earned;
-  const gasShow  = Math.max(0, Number(state.user.gas_balance) - preview.earned);
+  const niraShow = Number(state.user.nira_balance);
+  const gasShow  = Number(state.user.gas_balance);
   const gasTotal = Number(state.user.gas_balance);
   const meterPct = gasTotal <= 0 ? 0 : Math.min(100, (preview.earned/gasTotal)*100);
   const owned = new Map<number,number>(state.wizards.map((w:any)=>[w.wizard_id,w.quantity]));
@@ -237,7 +237,7 @@ export default function Home(){
     {toast && <div className="toast">{toast}</div>}
   </div>
   );
-                    }
+                           }
 
 function WizardCard({c, owned, nira, busy, t, onBuy}:any){
   const meta = WIZ_META[c.wizard_id] || { em:'🧙', bg:'#1f2748' };
@@ -335,7 +335,6 @@ function WithdrawForm({call,refresh,t,show,busy,setBusy,nira}:any){
 
 function PartnersBlock({state,t,show}:any){
   const code = state.user.referral_code || '';
-  const botUsername = (window as any)?.Telegram?.WebApp?.initDataUnsafe?.user?.id ? '' : '';
   const url  = `https://t.me/?startapp=${code}`;
   const earned = state.referrals.reduce((s:number,r:any)=>s+Number(r.total_nira_earned||0),0);
   return (
