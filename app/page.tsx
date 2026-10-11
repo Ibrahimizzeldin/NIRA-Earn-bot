@@ -63,7 +63,7 @@ function fmt(n:any, d=2){ const v=Number(n); if(!isFinite(v)) return '0';
 export default function Home(){
   const [initData, setInitData] = useState('');
   const [lang, setLang] = useState<'ar'|'en'>('ar');
-  const [tab, setTab] = useState<'mine'|'deposit'|'withdraw'|'partners'>('mine');
+  const [tab, setTab] = useState<'mine'|'deposit'|'withdraw'|'partners'|'profile'>('mine');
   const [state, setState] = useState<any>(null);
   const [busy, setBusy] = useState(false);
   const [toast, setToast] = useState('');
@@ -125,7 +125,8 @@ export default function Home(){
       {toast && <div className="toast">{toast}</div>}
     </div>
   );
-    const niraShow = Number(state.user.nira_balance) + preview.earned;
+  
+  const niraShow = Number(state.user.nira_balance) + preview.earned;
   const gasShow  = Math.max(0, Number(state.user.gas_balance) - preview.earned);
   const gasTotal = Number(state.user.gas_balance);
   const meterPct = gasTotal <= 0 ? 0 : Math.min(100, (preview.earned/gasTotal)*100);
@@ -141,7 +142,6 @@ export default function Home(){
 
   return (
   <div className="container">
-    {/* top: balance + lang + profile */}
     <div className="top">
       <div className="balbox">
         <span className="flame" />
@@ -149,10 +149,9 @@ export default function Home(){
       </div>
       <button className="iconbtn" onClick={()=>setLang(lang==='ar'?'en':'ar')}>
         {lang==='ar'?'EN':'ع'}</button>
-      <button className="iconbtn" onClick={()=>setTab('profile' as any)}>{t.profile}</button>
+      <button className="iconbtn" onClick={()=>setTab('profile')}>{t.profile}</button>
     </div>
 
-    {/* 4-button nav */}
     <div className="nav">
       {NAV.map(x=>(
         <button key={x.k} className={tab===x.k?'active':''} onClick={()=>setTab(x.k as any)}>
@@ -163,7 +162,6 @@ export default function Home(){
 
     {tab==='mine' && (
       <>
-        {/* daily income bar */}
         <div className="barwrap">
           <div className="barhead">
             <span>{t.daily}</span>
@@ -172,7 +170,6 @@ export default function Home(){
           <div className="bar orange"><div style={{width: meterPct+'%'}} /></div>
         </div>
 
-        {/* hero + owned grid */}
         <div className="mid">
           <div className="hero">
             <div className="art">{ownedWizards[0] ? WIZ_META[ownedWizards[0].wizard_id]?.em : '🧙'}</div>
@@ -199,7 +196,6 @@ export default function Home(){
           </div>
         </div>
 
-        {/* gas bar */}
         <div className="barwrap gaswrap">
           <div className="barhead">
             <span>{t.gas}</span>
@@ -208,7 +204,6 @@ export default function Home(){
           <div className="bar purple"><div style={{width: (100-meterPct)+'%'}} /></div>
         </div>
 
-        {/* 3 gas cards */}
         <div className="gasrow">
           {GAS_PKG.map(p=>{
             const can = Number(state.user.nira_balance) >= p.nira;
@@ -224,32 +219,31 @@ export default function Home(){
           })}
         </div>
 
-        {/* 12-wizard catalog: 2 per row */}
         <div className="catrow">
           {state.catalog.map((c:any)=>(
             <WizardCard key={c.wizard_id} c={c} owned={owned.get(c.wizard_id) ?? 0}
-              gas={Number(state.user.gas_balance)} busy={busy}
+              nira={Number(state.user.nira_balance)} busy={busy}
               t={t} onBuy={(qty:number)=>action({action:'buy_wizard', wizard_id:c.wizard_id, quantity:qty}, t.ok)} />
           ))}
         </div>
       </>
     )}
 
-    {tab==='deposit' as any && <DepositForm call={call} refresh={refresh} t={t} show={show} busy={busy} setBusy={setBusy} />}
-    {tab==='withdraw' as any && <WithdrawForm call={call} refresh={refresh} t={t} show={show} busy={busy} setBusy={setBusy} nira={Number(state.user.nira_balance)} />}
-    {tab==='partners' as any && <PartnersBlock state={state} t={t} show={show} />}
-    {(tab as any)==='profile' && <ProfileBlock state={state} t={t} />}
+    {tab==='deposit' && <DepositForm call={call} refresh={refresh} t={t} show={show} busy={busy} setBusy={setBusy} />}
+    {tab==='withdraw' && <WithdrawForm call={call} refresh={refresh} t={t} show={show} busy={busy} setBusy={setBusy} nira={Number(state.user.nira_balance)} />}
+    {tab==='partners' && <PartnersBlock state={state} t={t} show={show} />}
+    {tab==='profile' && <ProfileBlock state={state} t={t} />}
 
     {toast && <div className="toast">{toast}</div>}
   </div>
   );
-                }
+                    }
 
-function WizardCard({c, owned, gas, busy, t, onBuy}:any){
+function WizardCard({c, owned, nira, busy, t, onBuy}:any){
   const meta = WIZ_META[c.wizard_id] || { em:'🧙', bg:'#1f2748' };
   const ratePct = Math.round(Number(c.daily_rate)*100);
-  const can1 = gas >= Number(c.gas_cost);
-  const can10 = gas >= Number(c.gas_cost)*10;
+  const can1 = nira >= Number(c.nira_cost);
+  const can10 = nira >= Number(c.nira_cost)*10;
   return (
     <div className="wcard">
       <div className="top2">
@@ -261,7 +255,7 @@ function WizardCard({c, owned, gas, busy, t, onBuy}:any){
       </div>
       <div className="nm">{c.name}</div>
       <div className="cost">
-        <span><span className="flame" />{fmt(c.gas_cost,0)}</span>
+        <span><span className="flame" />{fmt(c.nira_cost,0)}</span>
         <span>+{fmt(c.daily_income,0)}</span>
       </div>
       <div className="buy">
@@ -341,6 +335,7 @@ function WithdrawForm({call,refresh,t,show,busy,setBusy,nira}:any){
 
 function PartnersBlock({state,t,show}:any){
   const code = state.user.referral_code || '';
+  const botUsername = (window as any)?.Telegram?.WebApp?.initDataUnsafe?.user?.id ? '' : '';
   const url  = `https://t.me/?startapp=${code}`;
   const earned = state.referrals.reduce((s:number,r:any)=>s+Number(r.total_nira_earned||0),0);
   return (
@@ -370,4 +365,4 @@ function ProfileBlock({state,t}:any){
       <div className="muted">{t.gas}: {fmt(state.user.gas_balance)}</div>
     </div>
   );
-          }
+}
