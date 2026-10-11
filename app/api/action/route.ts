@@ -31,7 +31,7 @@ export async function POST(req: NextRequest) {
         const [user, wizards, catalog, tx, rate, refs] = await Promise.all([
           db.from('nira_users').select('user_id,telegram_id,username,first_name,nira_balance,gas_balance,last_settled_at,referral_code').eq('telegram_id', tg.id).single(),
           db.from('nira_user_wizards').select('wizard_id,quantity').eq('telegram_id', tg.id),
-          db.from('nira_wizard_catalog').select('wizard_id,name,gas_cost,daily_income,daily_rate').order('wizard_id'),
+          db.from('nira_wizard_catalog').select('wizard_id,name,nira_cost,daily_income,daily_rate').order('wizard_id'),
           db.from('nira_transactions').select('id,type,amount_nira,amount_gas,meta,created_at').eq('telegram_id', tg.id).order('created_at', { ascending: false }).limit(30),
           db.rpc('nira_daily_rate', { p_tid: tg.id }),
           db.from('nira_referrals').select('referred_telegram_id,total_nira_earned').eq('referrer_telegram_id', tg.id),
@@ -78,4 +78,4 @@ export async function POST(req: NextRequest) {
   } catch (e: any) {
     return NextResponse.json({ error: 'server_error', detail: e?.message ?? 'unknown' }, { status: 500 });
   }
-                                                }
+          }
