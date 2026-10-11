@@ -8,7 +8,7 @@ export const dynamic = 'force-dynamic';
 export async function POST(req: NextRequest) {
   const body = await req.json().catch(() => null);
   if (!body?.initData) return NextResponse.json({ error: 'no_initData' }, { status: 400 });
-  const botToken = process.env.TELEGRAM_BOT_TOKEN;
+  const botToken = process.env.BOT_TOKEN;
   if (!botToken) return NextResponse.json({ error: 'server_misconfig' }, { status: 500 });
 
   const v = verifyInitData(body.initData, botToken);
@@ -78,4 +78,4 @@ export async function POST(req: NextRequest) {
   } catch (e: any) {
     return NextResponse.json({ error: 'server_error', detail: e?.message ?? 'unknown' }, { status: 500 });
   }
-    }
+                                                }
